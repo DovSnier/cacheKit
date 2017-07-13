@@ -8,7 +8,7 @@
    
 #### 使用Gradle构建时添加一下依赖即可:
 ```
-compile 'com.dvsnier:cacheLib:0.0.2'
+compile 'com.dvsnier:cacheLib:0.0.3'
 ```
 
 #### 使用前配置
