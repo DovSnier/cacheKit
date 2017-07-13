@@ -154,10 +154,10 @@ public class CacheManager implements ICache {
     }
 
     @Override
-    public void put(String key, Object value) {
-        if (null == lruCache) return;
-        if (null == key || "".equals(key)) return;
-        if (null == value) return;
+    public ICache put(String key, Object value) {
+        if (null == lruCache) return this;
+        if (null == key || "".equals(key)) return this;
+        if (null == value) return this;
         lruCache.put(key, value);
         if (value instanceof String) {
             putString(key, (String) value);
@@ -168,12 +168,13 @@ public class CacheManager implements ICache {
         } else {
             // nothing to do
         }
+        return this;
     }
 
     @Override
-    public void putString(String key, String value) {
-        if (null == diskLruCache) return;
-        if (null == value || "".equals(value)) return;
+    public ICache putString(String key, String value) {
+        if (null == diskLruCache) return this;
+        if (null == value || "".equals(value)) return this;
         DiskLruCache.Editor edit = null;
         OutputStream outputStream = null;
         BufferedWriter bufferedWriter = null;
@@ -199,12 +200,13 @@ public class CacheManager implements ICache {
                 e.printStackTrace();
             }
         }
+        return this;
     }
 
     @Override
-    public void putInputStream(String key, InputStream inputStream) {
-        if (null == diskLruCache) return;
-        if (null == inputStream) return;
+    public ICache putInputStream(String key, InputStream inputStream) {
+        if (null == diskLruCache) return this;
+        if (null == inputStream) return this;
         DiskLruCache.Editor edit = null;
         OutputStream outputStream = null;
         BufferedInputStream bufferedInputStream = null;
@@ -238,12 +240,13 @@ public class CacheManager implements ICache {
                 e.printStackTrace();
             }
         }
+        return this;
     }
 
     @Override
-    public void putObject(String key, Object value) {
-        if (null == diskLruCache) return;
-        if (null == value) return;
+    public ICache putObject(String key, Object value) {
+        if (null == diskLruCache) return this;
+        if (null == value) return this;
         if ((value instanceof Parcelable) || value instanceof Serializable) {
             DiskLruCache.Editor edit = null;
             ObjectOutputStream objectOutputStream = null;
@@ -273,11 +276,12 @@ public class CacheManager implements ICache {
                 }
             }
         }
+        return this;
     }
 
     @Override
-    public void remove(String key) {
-        if (null == key || "".equals(key)) return;
+    public ICache remove(String key) {
+        if (null == key || "".equals(key)) return this;
         if (null != lruCache)
             lruCache.remove(key);
         if (null != diskLruCache) {
@@ -287,15 +291,26 @@ public class CacheManager implements ICache {
                 e.printStackTrace();
             }
         }
+        return this;
     }
 
-    public final void onFlush() {
+    @Override
+    public boolean commit() {
         try {
             if (null != getDiskCache())
                 getDiskCache().flush();
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
+    }
+
+    /**
+     * @deprecated {@link ICache#commit()}
+     */
+    public final void onFlush() {
+        commit();
     }
 
     @Override

@@ -47,24 +47,27 @@ public interface ICache {
      *
      * @param key   the current key
      * @param value the current value
+     * @return {@link ICache}
      */
-    public void put(String key, Object value);
+    public ICache put(String key, Object value);
 
     /**
      * persistent string objects
      *
      * @param key   the current key
      * @param value the current value
+     * @return {@link ICache}
      */
-    public void putString(String key, String value);
+    public ICache putString(String key, String value);
 
     /**
      * persistent stream objects
      *
      * @param key         the current key
      * @param inputStream the current value
+     * @return {@link ICache}
      */
-    public void putInputStream(String key, InputStream inputStream);
+    public ICache putInputStream(String key, InputStream inputStream);
 
     /**
      * persistent objects
@@ -72,8 +75,9 @@ public interface ICache {
      *
      * @param key   the current key
      * @param value the current value
+     * @return {@link ICache}
      */
-    public void putObject(String key, Object value);
+    public ICache putObject(String key, Object value);
 
     /**
      * access to persistent objects
@@ -112,7 +116,15 @@ public interface ICache {
      *
      * @param key the current key
      */
-    public void remove(String key);
+    public ICache remove(String key);
+
+    /**
+     * Commit your cache changes
+     *
+     * @return Returns true if the new values were successfully written
+     * to persistent storage.
+     */
+    public boolean commit();
 
     /**
      * terminal the caching system
