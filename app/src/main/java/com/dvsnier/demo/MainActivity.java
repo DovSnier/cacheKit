@@ -21,7 +21,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 String key = String.valueOf(System.currentTimeMillis());
-                CacheManager.getInstance().putString(key, view.toString());
+                CacheManager.getInstance().putString(key, view.toString()).put(this.toString(), "测试数据: " + System.currentTimeMillis()).commit();
                 Toast.makeText(MainActivity.this, "测试完成，准备关闭...", Toast.LENGTH_SHORT).show();
                 view.postDelayed(new Runnable() {
                     @Override
@@ -36,6 +36,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        CacheManager.getInstance().onFlush();
+//        CacheManager.getInstance().onFlush(); // the deprecated
     }
 }
