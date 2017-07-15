@@ -1,4 +1,4 @@
-package com.dvsnier;
+package com.dvsnier.cache;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

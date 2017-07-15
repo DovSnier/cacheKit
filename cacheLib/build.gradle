@@ -2,20 +2,20 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
-version = "0.0.3"
+version = "0.0.4"
 group = "com.dvsnier"
 
 def siteUrl = 'https://github.com/DovSnier/cacheKit'
 def gitUrl = 'git@github.com:DovSnier/cacheKit.git'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 25
     buildToolsVersion "25.0.2"
 
     defaultConfig {
         minSdkVersion 10
         targetSdkVersion 26
-        versionCode 3
+        versionCode 4
         versionName version
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

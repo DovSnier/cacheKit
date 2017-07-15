@@ -1,4 +1,4 @@
-package com.dvsnier;
+package com.dvsnier.cache;
 
 import org.junit.Test;
 
