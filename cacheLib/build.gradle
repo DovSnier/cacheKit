@@ -2,21 +2,19 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
-version = "0.0.4"
-group = "com.dvsnier"
-
 def siteUrl = 'https://github.com/DovSnier/cacheKit'
 def gitUrl = 'git@github.com:DovSnier/cacheKit.git'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+
+    compileSdkVersion rootProject.ext.compile_sdk_version
+    buildToolsVersion rootProject.ext.build_tools_version
 
     defaultConfig {
-        minSdkVersion 10
-        targetSdkVersion 26
-        versionCode 4
-        versionName version
+        minSdkVersion rootProject.ext.min_sdk_version
+        targetSdkVersion rootProject.ext.target_sdk_version
+        versionCode rootProject.ext.version_code
+        versionName rootProject.ext.version_name
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -31,11 +29,12 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    androidTestCompile("com.android.support.test.espresso:espresso-core:${rootProject.ext.espresso_core_version}", {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:support-compat:24.2.0'
+    testCompile "junit:junit:${rootProject.ext.junit_version}"
+    //noinspection GradleDependency
+    compile "com.android.support:support-compat:${rootProject.ext.support_appcompat_version}"
 }
 
 install {
@@ -58,7 +57,7 @@ install {
                     developer {
                         id 'dovsnier'
                         name 'dovsnier'
-                        email '3086722095@qq.com'
+                        email 'dovsnier@qq.com'
                     }
                 }
 
