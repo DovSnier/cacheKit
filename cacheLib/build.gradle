@@ -32,9 +32,8 @@ dependencies {
     androidTestCompile("com.android.support.test.espresso:espresso-core:${rootProject.ext.espresso_core_version}", {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+    compile "com.android.support:support-annotations:${rootProject.ext.support_annotations_version}"
     testCompile "junit:junit:${rootProject.ext.junit_version}"
-    //noinspection GradleDependency
-    compile "com.android.support:support-compat:${rootProject.ext.support_appcompat_version}"
 }
 
 install {

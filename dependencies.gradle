@@ -13,6 +13,7 @@ ext {
 
     // support SDK 配置
     support_appcompat_version = "24.2.0"
+    support_annotations_version = "24.2.0"
     junit_version = "4.12"
     espresso_core_version = "2.2.2"
 
