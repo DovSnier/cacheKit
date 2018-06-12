@@ -10,32 +10,53 @@ import com.dvsnier.cache.CacheManager;
 
 public class MainActivity extends Activity {
 
+    private final String key0 = "key_0";
+    private final String key1 = "key_1";
+    private final String key2 = "key_2";
     private TextView test;
+    private TextView content;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         test = (TextView) findViewById(R.id.test);
+        content = (TextView) findViewById(R.id.content);
+        obtainContent();
         test.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String key = String.valueOf(System.currentTimeMillis());
-                CacheManager.getInstance().putString(key, view.toString()).put(this.toString(), "测试数据: " + System.currentTimeMillis()).commit();
-                Toast.makeText(MainActivity.this, "测试完成，准备关闭...", Toast.LENGTH_SHORT).show();
+                CacheManager.getInstance().put(key0, "测试数据: " + System.currentTimeMillis())
+                        .putString(key1, "测试字符串: " + view.toString())
+                        .putObject(key2, new Bean("cache", "0.0.5"))
+                        .commit();
+                obtainContent();
+                Toast.makeText(MainActivity.this, "测试完成，60s 后准备关闭...", Toast.LENGTH_SHORT).show();
                 view.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         finish();
                     }
-                }, 1000);
+                }, 60 * 1000);
             }
         });
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-//        CacheManager.getInstance().onFlush(); // the deprecated
+    protected void onResume() {
+        super.onResume();
+        obtainContent();
+    }
+
+    protected void obtainContent() {
+        content.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Object o0 = CacheManager.getInstance().get(key0);
+                String o1 = CacheManager.getInstance().getString(key1);
+                Object o2 = CacheManager.getInstance().getObject(key2);
+                content.setText(String.format("1. value：\n\t\t\t\t%1$s\n\n2. 字符串：\n\t\t\t\t%2$s\n\n3. 对象：\n\t\t\t\t%3$s\n\n", o0, o1, o2));
+            }
+        }, 1000);
     }
 }
