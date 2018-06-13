@@ -8,7 +8,7 @@
    
 #### 使用Gradle构建时添加一下依赖即可:
 ```
-compile 'com.dvsnier:cacheLib:0.0.4'
+compile 'com.dvsnier:cacheLib:0.0.5'
 ```
 
 #### 使用前配置
@@ -24,7 +24,7 @@ compile 'com.dvsnier:cacheLib:0.0.4'
     @Override
     public void onCreate() {
         super.onCreate();
-        initializedCache();
+        CacheManager.getInstance().initialize(this);
         ...
     }
     
@@ -33,18 +33,33 @@ compile 'com.dvsnier:cacheLib:0.0.4'
         super.onTerminate();
         CacheManager.getInstance().close();
     }
-
-    private void initializedCache() {
-        File cache = null;
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            cache = getExternalCacheDir();
-        } else {
-            cache = getCacheDir();
-        }
-        int cacheMaxSizeOfDisk = 1024 * 1024 * 1024;
-        CacheManager.getInstance().initialize(new ICacheConfig.Builder(this).setAppVersion(getAppVersionCode(this)).setCacheDirectory(cache).setCacheMaxSizeOfDisk(cacheMaxSizeOfDisk).create());
-    }
     
+```
+#### 扩展
+##### 第一种
+```
+    // 在application的onCreate中初始化
+    @Override
+    public void onCreate() {
+        super.onCreate();
+//		默认磁盘配置512M 缓存空间
+        CacheManager.getInstance().initialize(this);
+        ...
+    }
+```
+##### 第二种
+```
+    // 在application的onCreate中初始化
+    @Override
+    public void onCreate() {
+        super.onCreate();
+//		自定义磁盘1G 缓存空间
+	    int cacheMaxSizeOfDisk = 1024 * 1024 * 1024; // 1G
+        CacheManager.getInstance().initialize(new ICacheConfig.Builder(this).setCacheMaxSizeOfDisk(cacheMaxSizeOfDisk).create());
+//      CacheManager.getInstance().initialize(new ICacheConfig.Builder(this).setAppVersion(getAppVersionCode(this)).setCacheMaxSizeOfDisk(cacheMaxSizeOfDisk).create());
+        ...
+    }
+
     public static int getAppVersionCode(Context context) {
             int versionCode = 1;
             PackageManager pm = context.getPackageManager();
