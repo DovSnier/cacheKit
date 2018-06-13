@@ -1,8 +1,11 @@
 package com.dvsnier.cache;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
+import com.dvsnier.cache.config.ICacheAPI;
 import com.dvsnier.cache.config.ICacheConfig;
 import com.dvsnier.cache.transaction.CacheTransaction;
 import com.dvsnier.cache.transaction.ICacheTransaction;
@@ -19,7 +22,7 @@ import libcore.io.LruCache;
  * Created by dovsnier on 2018/6/12.
  */
 
-public class Cache implements ICache, ICacheGenre {
+public class Cache implements ICache, ICacheGenre, ICacheAPI {
 
     private Context context;
     private LruCache<String, Object> lruCache;
@@ -52,6 +55,7 @@ public class Cache implements ICache, ICacheGenre {
         if (null == context) {
             throw new IllegalArgumentException("Context object that can't be null.");
         }
+        onSdkCallback(context);
         long maxMemory = Runtime.getRuntime().maxMemory();
         int size = (int) (maxMemory / 8);
         lruCache = new LruCache<>(size);
@@ -71,6 +75,7 @@ public class Cache implements ICache, ICacheGenre {
         if (null == context) {
             throw new IllegalArgumentException("Context object that can't be null.");
         }
+        onSdkCallback(context);
         int cacheMaxSizeOfMemory = cacheConfig.getCacheMaxSizeOfMemory();
         if (cacheMaxSizeOfMemory <= 0) {
             long maxMemory = Runtime.getRuntime().maxMemory();
@@ -136,6 +141,19 @@ public class Cache implements ICache, ICacheGenre {
     protected void setCacheTransaction(ICacheTransaction cacheTransaction) {
         this.cacheTransaction = cacheTransaction;
         setCacheTransaction();
+    }
+
+    @SuppressLint("ApplySharedPref")
+    @Override
+    public void onSdkCallback(@NonNull Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(SDK_FILE_NAME, Context.MODE_PRIVATE);
+        if (null != sharedPreferences) {
+            SharedPreferences.Editor edit = sharedPreferences.edit();
+            if (null != edit) {
+                edit.putString(SDK_VERSION_KEY, BuildConfig.cache_sdk_version);
+                edit.commit();
+            }
+        }
     }
 
     public OnCacheTransactionListener getOnCacheTransactionListener() {
