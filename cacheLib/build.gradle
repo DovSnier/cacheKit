@@ -36,6 +36,14 @@ dependencies {
     testCompile "junit:junit:${rootProject.ext.junit_version}"
 }
 
+/*
+* Could not upload to 'https://api.bintray.com/content/dovsnier/AndroidComponent/cacheLib/0.0.5/cacheKit/cacheLib/unspecified/cacheLib-unspecified.pom': HTTP/1.1 400 Bad Request [mes
+sage:Unable to upload files: Maven group, artifact or version defined in the pom file do not match the file path 'cacheKit/cacheLib/unspecified/cacheLib-unspecified.pom']
+
+* */
+group = 'com.dvsnier'
+//version = rootProject.ext.version_name
+
 install {
     repositories.mavenInstaller {
         pom {
@@ -106,5 +114,13 @@ bintray {
         vcsUrl = gitUrl
         licenses = ["Apache-2.0"]
         publish = true
+        publicDownloadNumbers = true
+//        dryRun = true
+        version {
+            name = rootProject.ext.version_name
+            desc = "cacheLib ${rootProject.ext.version_name}"
+            released = new Date()
+            vcsTag = rootProject.ext.version_name
+        }
     }
 }
