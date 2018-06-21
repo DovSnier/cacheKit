@@ -1,0 +1,1 @@
+gradlew clean build publishToMavenLocal bintrayUpload -PdryRun=false > bintrayUpload.log

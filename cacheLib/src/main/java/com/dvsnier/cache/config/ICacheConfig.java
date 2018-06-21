@@ -1,4 +1,4 @@
-package com.dvsnier.cache;
+package com.dvsnier.cache.config;
 
 import android.content.Context;
 
