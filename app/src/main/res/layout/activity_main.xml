@@ -1,19 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     android:gravity="center"
-    android:orientation="vertical"
     tools:context="com.dvsnier.demo.MainActivity">
+
+    <TextView
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="left|top"
+        android:padding="25dp"
+        android:textColor="@color/colorPrimary"
+        tools:ignore="RtlHardcoded" />
 
     <TextView
         android:id="@+id/test"
         android:layout_width="99dp"
         android:layout_height="99dp"
+        android:layout_centerInParent="true"
+        android:background="@color/colorAccent"
         android:gravity="center"
         android:text="测试"
+        android:textColor="@color/colorPrimary"
         android:textSize="20sp"
-        android:textStyle="bold"/>
-</LinearLayout>
+        android:textStyle="bold"
+        tools:ignore="HardcodedText" />
+
+</RelativeLayout>

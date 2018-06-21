@@ -1,6 +1,5 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.novoda.bintray-release'
 
 def siteUrl = 'https://github.com/DovSnier/cacheKit'
 def gitUrl = 'git@github.com:DovSnier/cacheKit.git'
@@ -15,7 +14,7 @@ android {
         targetSdkVersion rootProject.ext.target_sdk_version
         versionCode rootProject.ext.version_code
         versionName rootProject.ext.version_name
-
+        buildConfigField "String", "cache_sdk_version", "\"${rootProject.ext.version_name}\""
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
@@ -25,6 +24,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
@@ -32,43 +35,8 @@ dependencies {
     androidTestCompile("com.android.support.test.espresso:espresso-core:${rootProject.ext.espresso_core_version}", {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+    compile "com.android.support:support-annotations:${rootProject.ext.support_annotations_version}"
     testCompile "junit:junit:${rootProject.ext.junit_version}"
-    //noinspection GradleDependency
-    compile "com.android.support:support-compat:${rootProject.ext.support_appcompat_version}"
-}
-
-install {
-    repositories.mavenInstaller {
-        pom {
-            project {
-                packaging 'aar'
-                name 'cacheLib'
-                description 'the android cache lib.'
-                url siteUrl
-
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id 'dovsnier'
-                        name 'dovsnier'
-                        email 'dovsnier@qq.com'
-                    }
-                }
-
-                scm {
-                    connection gitUrl
-                    developerConnection gitUrl
-                    url siteUrl
-                }
-            }
-        }
-    }
 }
 
 task sourcesJar(type: Jar) {
@@ -84,6 +52,7 @@ task javadoc(type: Javadoc) {
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
+    //noinspection GroovyAccessibility
     from javadoc.destinationDir
 }
 
@@ -91,21 +60,20 @@ artifacts {
     archives javadocJar
     archives sourcesJar
 }
-
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
-bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
-
-    configurations = ['archives']
-    pkg {
-        repo = "AndroidComponent"
-        name = "cacheLib"
-        userOrg = 'dovsnier'
-        websiteUrl = siteUrl
-        vcsUrl = gitUrl
-        licenses = ["Apache-2.0"]
-        publish = true
-    }
+def user = properties.getProperty("bintray.user")
+def key = properties.getProperty("bintray.apikey")
+publish {
+    repoName = 'AndroidComponent'
+    userOrg = 'dovsnier'
+    groupId = 'com.dvsnier'
+    artifactId = 'cacheLib'
+    publishVersion = rootProject.ext.version_name
+    desc = "the android cache lib that version is ${rootProject.ext.version_name}"
+    website = siteUrl
+    repository = gitUrl
+    autoPublish = true
+    bintrayUser = user
+    bintrayKey = key
 }
