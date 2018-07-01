@@ -1,5 +1,7 @@
 package com.dvsnier.demo;
 
+import android.support.annotation.NonNull;
+
 import java.io.Serializable;
 
 /**
@@ -8,13 +10,15 @@ import java.io.Serializable;
 public class Bean implements Serializable {
 
     private static final long serialVersionUID = 8219150308909916068L;
+    @NonNull
     private String name;
+    @NonNull
     private String version;
 
     public Bean() {
     }
 
-    public Bean(String name, String version) {
+    public Bean(@NonNull String name, @NonNull String version) {
         this.name = name;
         this.version = version;
     }
@@ -33,6 +37,24 @@ public class Bean implements Serializable {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Bean bean = (Bean) o;
+
+        if (!name.equals(bean.name)) return false;
+        return version.equals(bean.version);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + version.hashCode();
+        return result;
     }
 
     @Override
