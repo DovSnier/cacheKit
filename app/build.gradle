@@ -1,14 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "25.0.2"
+    compileSdkVersion rootProject.ext.compile_sdk_version
+    buildToolsVersion rootProject.ext.build_tools_version
+
     defaultConfig {
         applicationId "com.dvsnier.demo"
-        minSdkVersion 10
-        targetSdkVersion 26
-        versionCode 2
-        versionName "1.0.0"
+        minSdkVersion rootProject.ext.min_sdk_version
+        targetSdkVersion rootProject.ext.target_sdk_version
+        versionCode 3
+        versionName "1.0.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -20,10 +21,11 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestImplementation("com.android.support.test.espresso:espresso-core:${rootProject.ext.espresso_core_version}", {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    testCompile 'junit:junit:4.12'
-    compile project(':cacheLib')
+    implementation "com.android.support:support-annotations:${rootProject.ext.support_annotations_version}"
+    testImplementation "junit:junit:${rootProject.ext.junit_version}"
+    implementation project(':cacheLib')
 }

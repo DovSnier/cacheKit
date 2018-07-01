@@ -55,7 +55,7 @@ public class CacheManager implements ICache, ICacheTransaction {
         if (null != cache) {
             //noinspection ConstantConditions
             if (null != cacheConfig) {
-                cache.initialize(cacheConfig.getContext());
+                cache.initialize(cacheConfig);
             }
         }
     }
