@@ -22,22 +22,21 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         test = (TextView) findViewById(R.id.test);
         content = (TextView) findViewById(R.id.content);
-        obtainContent();
         test.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 CacheManager.getInstance().put(key0, "测试数据: " + System.currentTimeMillis())
                         .putString(key1, "测试字符串: " + view.toString())
-                        .putObject(key2, new Bean("cache", "0.0.5"))
+                        .putObject(key2, new Bean("cache object " + System.currentTimeMillis(), BuildConfig.VERSION_NAME))
                         .commit();
                 obtainContent();
-                Toast.makeText(MainActivity.this, "测试完成，60s 后准备关闭...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "测试完成，6s 后准备关闭...", Toast.LENGTH_SHORT).show();
                 view.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         finish();
                     }
-                }, 60 * 1000);
+                }, 6 * 1000);
             }
         });
     }
