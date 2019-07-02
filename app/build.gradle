@@ -8,9 +8,8 @@ android {
         applicationId "com.dvsnier.demo"
         minSdkVersion rootProject.ext.min_sdk_version
         targetSdkVersion rootProject.ext.target_sdk_version
-        versionCode 3
-        versionName "1.0.1"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        versionCode rootProject.ext.version_app_code
+        versionName "${rootProject.ext.version_app_name}.${gitHashCode()}"
     }
     buildTypes {
         release {
@@ -20,12 +19,13 @@ android {
     }
 }
 
+def gitHashCode() { return 'git rev-parse --short HEAD'.execute([], project.rootDir).text.trim() }
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestImplementation("com.android.support.test.espresso:espresso-core:${rootProject.ext.espresso_core_version}", {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
+
     implementation "com.android.support:support-annotations:${rootProject.ext.support_annotations_version}"
-    testImplementation "junit:junit:${rootProject.ext.junit_version}"
     implementation project(':cacheLib')
+
+    testImplementation "junit:junit:${rootProject.ext.junit_version}"
 }
