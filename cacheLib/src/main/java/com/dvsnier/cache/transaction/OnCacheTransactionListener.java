@@ -1,6 +1,7 @@
 package com.dvsnier.cache.transaction;
 
 /**
+ * OnCacheTransactionListener
  * Created by dovsnier on 2018/6/12.
  */
 public interface OnCacheTransactionListener {
@@ -10,5 +11,5 @@ public interface OnCacheTransactionListener {
      *
      * @param cacheTransaction {@see ICacheTransaction}
      */
-    void onCacheTransactionChanged(ICacheTransaction cacheTransaction);
+    void onCacheTransactionChanged(ITransaction cacheTransaction);
 }

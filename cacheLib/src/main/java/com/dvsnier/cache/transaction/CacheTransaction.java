@@ -2,7 +2,7 @@ package com.dvsnier.cache.transaction;
 
 import android.support.annotation.NonNull;
 
-import com.dvsnier.cache.ICacheGenre;
+import com.dvsnier.cache.base.ICacheGenre;
 import com.dvsnier.cache.config.CacheAllocation;
 import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.config.Type;
@@ -23,6 +23,7 @@ import libcore.io.DiskLruCache;
 import libcore.io.LruCache;
 
 /**
+ * CacheTransaction
  * Created by dovsnier on 2018/6/12.
  */
 public class CacheTransaction implements ICacheTransaction, ICacheGenre, IAlias {
