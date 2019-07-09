@@ -18,6 +18,8 @@ package libcore.io;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import libcore.base.ILruCache;
+
 /**
  * Static library version of {@link android.util.LruCache}. Used to write apps
  * that run on API levels prior to 12. When running on API level 12 or above,
@@ -25,7 +27,7 @@ import java.util.Map;
  * framework's implementation. See the framework SDK documentation for a class
  * overview.
  */
-public class LruCache<K, V> {
+public class LruCache<K, V> implements ILruCache<K, V> {
 
     private final LinkedHashMap<K, V> map;
     /**
