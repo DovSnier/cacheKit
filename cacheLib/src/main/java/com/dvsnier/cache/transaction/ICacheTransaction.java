@@ -5,9 +5,10 @@ import android.support.annotation.NonNull;
 import java.io.InputStream;
 
 /**
+ * ICacheTransaction
  * Created by dovsnier on 2018/6/12.
  */
-public interface ICacheTransaction extends ITransaction {
+public interface ICacheTransaction extends IAbstractTransaction {
 
     /**
      * persistent string objects

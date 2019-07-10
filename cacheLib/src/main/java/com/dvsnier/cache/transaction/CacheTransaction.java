@@ -19,6 +19,10 @@ import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 
+import libcore.base.IDiskLruCache;
+import libcore.base.ILruCache;
+import libcore.compat.ICompatDiskLruCache;
+import libcore.compat.ICompatLruCache;
 import libcore.io.DiskLruCache;
 import libcore.io.LruCache;
 
@@ -30,14 +34,14 @@ public class CacheTransaction implements ICacheTransaction, ICacheGenre, IAlias 
 
     @SuppressWarnings("WeakerAccess")
     protected Type type;
-    protected LruCache<String, Object> cache;
+    protected ILruCache cache;
     @SuppressWarnings("WeakerAccess")
-    protected DiskLruCache diskCache;
+    protected IDiskLruCache diskCache;
 
     public CacheTransaction() {
     }
 
-    public CacheTransaction(@NonNull LruCache<String, Object> lruCache, @NonNull DiskLruCache diskLruCache) {
+    public CacheTransaction(@NonNull ICompatLruCache<String, Object> lruCache, @NonNull ICompatDiskLruCache diskLruCache) {
         this.cache = lruCache;
         this.diskCache = diskLruCache;
     }
@@ -345,21 +349,25 @@ public class CacheTransaction implements ICacheTransaction, ICacheGenre, IAlias 
 
     @Override
     public LruCache<String, Object> getCache() {
-        return cache;
+        //noinspection unchecked
+        return (LruCache<String, Object>) cache;
+    }
+
+    @Override
+    public void setCache(ILruCache<String, Object> lruCache) {
+        this.cache = lruCache;
     }
 
     @Override
     public DiskLruCache getDiskCache() {
-        return diskCache;
+        return (DiskLruCache) diskCache;
+    }
+
+    @Override
+    public void setDiskCache(IDiskLruCache diskLruCache) {
+        this.diskCache = diskLruCache;
     }
 
     //</editor-fold>
 
-    public void setCache(LruCache<String, Object> lruCache) {
-        this.cache = lruCache;
-    }
-
-    public void setDiskCache(DiskLruCache diskLruCache) {
-        this.diskCache = diskLruCache;
-    }
 }
