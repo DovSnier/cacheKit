@@ -4,11 +4,11 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 /**
+ * ICacheAPI
  * Created by dovsnier on 2018/6/12.
  */
-public interface ICacheAPI {
+public interface ICacheAPI extends IApi {
 
-    String SDK_FILE_NAME = "dvs_config";
     String SDK_VERSION_KEY = "cache_sdk_version";
 
     /**

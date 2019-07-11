@@ -2,13 +2,11 @@ package com.dvsnier.cache.transaction;
 
 import android.support.annotation.NonNull;
 
-import com.dvsnier.cache.base.ICache;
-
 /**
  * IAbstractTransaction
  * Created by dovsnier on 2019-07-10.
  */
-public interface IAbstractTransaction extends ITransaction {
+public interface IAbstractTransaction<T> extends ITransaction<T> {
 
     /**
      * persistent objects
@@ -16,15 +14,15 @@ public interface IAbstractTransaction extends ITransaction {
      *
      * @param key   the current key
      * @param value the current value
-     * @return {@link ICache}
+     * @return {@link ITransaction}
      */
-    ITransaction put(@NonNull String key, Object value);
+    T put(@NonNull String key, Object value);
 
     /**
      * access to persistent objects
      *
      * @param key the current key
-     * @return {@link Object}
+     * @return {@see Object}
      */
     Object get(@NonNull String key);
 
@@ -33,7 +31,7 @@ public interface IAbstractTransaction extends ITransaction {
      *
      * @param key the current key
      */
-    ITransaction remove(@NonNull String key);
+    T remove(@NonNull String key);
 
     /**
      * Commit your cache changes

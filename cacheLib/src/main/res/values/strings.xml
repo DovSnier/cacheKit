@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">cacheLib</string>
+    <string name="unique_name">local</string>
 </resources>

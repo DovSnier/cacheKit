@@ -10,7 +10,7 @@ import com.dvsnier.cache.config.IType;
  * Created by dovsnier on 2019-07-10.
  */
 @Multiple
-public interface IAbstractMultipleTransaction extends ITransaction {
+public interface IAbstractMultipleTransaction<T> extends ITransaction<T> {
 
     /**
      * persistent objects
@@ -21,14 +21,14 @@ public interface IAbstractMultipleTransaction extends ITransaction {
      * @param value the current value
      * @return {@link ITransaction}
      */
-    ITransaction put(@NonNull String type, @NonNull String key, Object value);
+    T put(@NonNull String type, @NonNull String key, Object value);
 
     /**
      * access to persistent objects
      *
      * @param type {@link IType}
      * @param key  the current key
-     * @return {@link Object}
+     * @return {@see Object}
      */
     Object get(@NonNull String type, @NonNull String key);
 
@@ -38,7 +38,7 @@ public interface IAbstractMultipleTransaction extends ITransaction {
      * @param type {@link IType}
      * @param key  the current key
      */
-    ITransaction remove(@NonNull String type, @NonNull String key);
+    T remove(@NonNull String type, @NonNull String key);
 
     /**
      * Commit your cache changes

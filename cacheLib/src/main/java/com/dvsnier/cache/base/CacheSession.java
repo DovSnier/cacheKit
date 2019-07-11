@@ -8,23 +8,23 @@ import libcore.base.IDiskLruCache;
 import libcore.base.ILruCache;
 
 /**
- * Cache
+ * CacheSession
  * Created by dovsnier on 2018/6/12.
  */
-public class Cache extends AbstractCache {
+public class CacheSession extends AbstractCacheSession {
 
     protected ILruCache lruCache;
     protected IDiskLruCache diskLruCache;
 
-    public Cache() {
+    public CacheSession() {
         super();
     }
 
-    public Cache(Context context) {
+    public CacheSession(Context context) {
         super(context);
     }
 
-    public Cache(Context context, ICacheTransaction cacheTransaction) {
+    public CacheSession(Context context, ICacheTransaction cacheTransaction) {
         super(context, cacheTransaction);
     }
 

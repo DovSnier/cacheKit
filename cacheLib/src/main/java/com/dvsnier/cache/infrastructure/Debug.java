@@ -18,6 +18,7 @@ public class Debug implements IDebug {
     private static final Debug INSTANCE = new Debug();
 
     private Debug() {
+        level = Level.VERBOSE;
     }
 
     public static Debug INSTANCE() {
@@ -63,7 +64,7 @@ public class Debug implements IDebug {
      */
     public static void v(@NonNull String tag, String msg) {
         if (Debug.INSTANCE().isDebug()) {
-            if (Debug.INSTANCE().hasLevel().ordinal() <= Level.VERBOSE.ordinal()) {
+            if (Debug.INSTANCE().hasLevel().getValue() >= Level.VERBOSE.getValue()) {
                 Log.v(tag, msg);
             }
         }
@@ -82,7 +83,7 @@ public class Debug implements IDebug {
      */
     public static void d(@NonNull String tag, String msg) {
         if (Debug.INSTANCE().isDebug()) {
-            if (Debug.INSTANCE().hasLevel().ordinal() <= Level.DEBUG.ordinal()) {
+            if (Debug.INSTANCE().hasLevel().getValue() >= Level.DEBUG.getValue()) {
                 Log.d(tag, msg);
             }
         }
@@ -100,7 +101,7 @@ public class Debug implements IDebug {
      */
     public static void i(@NonNull String tag, String msg) {
         if (Debug.INSTANCE().isDebug()) {
-            if (Debug.INSTANCE().hasLevel().ordinal() <= Level.INFO.ordinal()) {
+            if (Debug.INSTANCE().hasLevel().getValue() >= Level.INFO.getValue()) {
                 Log.i(tag, msg);
             }
         }
@@ -118,7 +119,7 @@ public class Debug implements IDebug {
      */
     public static void w(@NonNull String tag, String msg) {
         if (Debug.INSTANCE().isDebug()) {
-            if (Debug.INSTANCE().hasLevel().ordinal() <= Level.WARN.ordinal()) {
+            if (Debug.INSTANCE().hasLevel().getValue() >= Level.WARN.getValue()) {
                 Log.w(tag, msg);
             }
         }
@@ -136,7 +137,7 @@ public class Debug implements IDebug {
      */
     public static void e(@NonNull String tag, String msg) {
         if (Debug.INSTANCE().isDebug()) {
-            if (Debug.INSTANCE().hasLevel().ordinal() <= Level.ERROR.ordinal()) {
+            if (Debug.INSTANCE().hasLevel().getValue() >= Level.ERROR.getValue()) {
                 Log.e(tag, msg);
             }
         }

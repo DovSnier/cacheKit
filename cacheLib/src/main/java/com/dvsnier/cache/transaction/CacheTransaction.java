@@ -2,9 +2,7 @@ package com.dvsnier.cache.transaction;
 
 import android.support.annotation.NonNull;
 
-import com.dvsnier.cache.base.ICacheGenre;
 import com.dvsnier.cache.config.CacheAllocation;
-import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.config.Type;
 
 import java.io.BufferedInputStream;
@@ -19,62 +17,44 @@ import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 
-import libcore.base.IDiskLruCache;
-import libcore.base.ILruCache;
 import libcore.compat.ICompatDiskLruCache;
 import libcore.compat.ICompatLruCache;
 import libcore.io.DiskLruCache;
-import libcore.io.LruCache;
 
 /**
  * CacheTransaction
  * Created by dovsnier on 2018/6/12.
  */
-public class CacheTransaction implements ICacheTransaction, ICacheGenre, IAlias {
-
-    @SuppressWarnings("WeakerAccess")
-    protected Type type;
-    protected ILruCache cache;
-    @SuppressWarnings("WeakerAccess")
-    protected IDiskLruCache diskCache;
+public class CacheTransaction extends AbstractCacheTransaction {
 
     public CacheTransaction() {
+        super();
     }
 
     public CacheTransaction(@NonNull ICompatLruCache<String, Object> lruCache, @NonNull ICompatDiskLruCache diskLruCache) {
-        this.cache = lruCache;
-        this.diskCache = diskLruCache;
+        super(lruCache, diskLruCache);
     }
 
-    //<editor-fold desc="IAlias">
-
-    @Override
-    public ICacheTransaction getCache(@NonNull Type type) {
-        this.type = type;
-        return this;
-    }
-
-    //</editor-fold>
     //<editor-fold desc="ICacheTransaction">
 
     @Override
-    public ICacheTransaction put(@NonNull String key, Object value) {
+    public CacheTransactionSimpleSession put(@NonNull String key, Object value) {
         //noinspection ConstantConditions
-        if (null == key || "".equals(key)) return getCache(Type.DEFAULT);
-        if (null == value) return getCache(Type.DEFAULT);
+        if (null == key || "".equals(key)) return getCacheTransaction(Type.DEFAULT);
+        if (null == value) return getCacheTransaction(Type.DEFAULT);
         if (value instanceof Serializable) {
             putObject(key, value);
         } else {
             // nothing to do
         }
-        return getCache(Type.DEFAULT);
+        return getCacheTransaction(Type.DEFAULT);
     }
 
     @Override
-    public ICacheTransaction putString(@NonNull String key, String value) {
+    public CacheTransactionSimpleSession putString(@NonNull String key, String value) {
         //noinspection ConstantConditions
-        if (null == key || "".equals(key)) return getCache(Type.DEFAULT);
-        if (null == value) return getCache(Type.DEFAULT);
+        if (null == key || "".equals(key)) return getCacheTransaction(Type.DEFAULT);
+        if (null == value) return getCacheTransaction(Type.DEFAULT);
         if (null != getCache()) {
             //noinspection unchecked
             getCache().put(key, value);
@@ -109,14 +89,14 @@ public class CacheTransaction implements ICacheTransaction, ICacheGenre, IAlias 
                 }
             }
         }
-        return getCache(Type.DEFAULT);
+        return getCacheTransaction(Type.DEFAULT);
     }
 
     @Override
-    public ICacheTransaction putInputStream(@NonNull String key, InputStream inputStream) {
+    public CacheTransactionSimpleSession putInputStream(@NonNull String key, InputStream inputStream) {
         //noinspection ConstantConditions
-        if (null == key || "".equals(key)) return getCache(Type.DEFAULT);
-        if (null == inputStream) return getCache(Type.DEFAULT);
+        if (null == key || "".equals(key)) return getCacheTransaction(Type.DEFAULT);
+        if (null == inputStream) return getCacheTransaction(Type.DEFAULT);
         if (null != getCache() && CacheAllocation.INSTANCE().ApiOfInner()) {
             //noinspection unchecked
             getCache().put(key, inputStream);
@@ -157,14 +137,14 @@ public class CacheTransaction implements ICacheTransaction, ICacheGenre, IAlias 
                 }
             }
         }
-        return getCache(Type.DEFAULT);
+        return getCacheTransaction(Type.DEFAULT);
     }
 
     @Override
-    public ICacheTransaction putObject(@NonNull String key, Object value) {
+    public CacheTransactionSimpleSession putObject(@NonNull String key, Object value) {
         //noinspection ConstantConditions
-        if (null == key || "".equals(key)) return getCache(Type.DEFAULT);
-        if (null == value) return getCache(Type.DEFAULT);
+        if (null == key || "".equals(key)) return getCacheTransaction(Type.DEFAULT);
+        if (null == value) return getCacheTransaction(Type.DEFAULT);
         if (null != getCache()) {
             //noinspection unchecked
             getCache().put(key, value);
@@ -201,7 +181,7 @@ public class CacheTransaction implements ICacheTransaction, ICacheGenre, IAlias 
                 }
             }
         }
-        return getCache(Type.DEFAULT);
+        return getCacheTransaction(Type.DEFAULT);
     }
 
     @Override
@@ -313,9 +293,9 @@ public class CacheTransaction implements ICacheTransaction, ICacheGenre, IAlias 
     }
 
     @Override
-    public ICacheTransaction remove(@NonNull String key) {
+    public CacheTransactionSimpleSession remove(@NonNull String key) {
         //noinspection ConstantConditions
-        if (null == key || "".equals(key)) return getCache(Type.DEFAULT);
+        if (null == key || "".equals(key)) return getCacheTransaction(Type.DEFAULT);
         if (null != getCache())
             //noinspection unchecked
             getCache().remove(key);
@@ -324,10 +304,10 @@ public class CacheTransaction implements ICacheTransaction, ICacheGenre, IAlias 
                 getDiskCache().remove(key);
             } catch (IOException e) {
                 e.printStackTrace();
-                return getCache(Type.DEFAULT);
+                return getCacheTransaction(Type.DEFAULT);
             }
         }
-        return getCache(Type.DEFAULT);
+        return getCacheTransaction(Type.DEFAULT);
     }
 
     @Override
@@ -345,29 +325,4 @@ public class CacheTransaction implements ICacheTransaction, ICacheGenre, IAlias 
     }
 
     //</editor-fold>
-    //<editor-fold desc="ICacheGenre">
-
-    @Override
-    public LruCache<String, Object> getCache() {
-        //noinspection unchecked
-        return (LruCache<String, Object>) cache;
-    }
-
-    @Override
-    public void setCache(ILruCache<String, Object> lruCache) {
-        this.cache = lruCache;
-    }
-
-    @Override
-    public DiskLruCache getDiskCache() {
-        return (DiskLruCache) diskCache;
-    }
-
-    @Override
-    public void setDiskCache(IDiskLruCache diskLruCache) {
-        this.diskCache = diskLruCache;
-    }
-
-    //</editor-fold>
-
 }

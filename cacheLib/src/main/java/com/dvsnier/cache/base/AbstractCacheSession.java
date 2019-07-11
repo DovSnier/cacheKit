@@ -2,34 +2,41 @@ package com.dvsnier.cache.base;
 
 import android.content.Context;
 
+import com.dvsnier.cache.annotation.Hide;
+import com.dvsnier.cache.annotation.LSM;
+import com.dvsnier.cache.annotation.Multiple;
+import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.transaction.CacheTransaction;
+import com.dvsnier.cache.transaction.CacheTransactionSimpleSession;
 import com.dvsnier.cache.transaction.ICacheTransaction;
+import com.dvsnier.cache.transaction.IGetCacheTransactionSession;
 import com.dvsnier.cache.transaction.OnCacheTransactionListener;
 
 /**
- * AbstractCache
+ * AbstractCacheSession
  * Created by dovsnier on 2019-07-02.
  */
-public abstract class AbstractCache implements ICache, ICacheGenre {
+public abstract class AbstractCacheSession implements ICacheSession, ICacheGenre, IAlias, IGetCacheTransactionSession<CacheTransactionSimpleSession> {
 
     protected Context context;
+    protected String alias;
     protected ICacheTransaction cacheTransaction;
     protected OnCacheTransactionListener onCacheTransactionListener;
 
-    public AbstractCache() {
+    public AbstractCacheSession() {
         if (null == cacheTransaction) {
             cacheTransaction = new CacheTransaction();
         }
     }
 
-    public AbstractCache(Context context) {
+    public AbstractCacheSession(Context context) {
         this.context = context;
         if (null == cacheTransaction) {
             cacheTransaction = new CacheTransaction();
         }
     }
 
-    public AbstractCache(Context context, ICacheTransaction cacheTransaction) {
+    public AbstractCacheSession(Context context, ICacheTransaction cacheTransaction) {
         this.context = context;
         this.cacheTransaction = cacheTransaction;
     }
@@ -41,6 +48,28 @@ public abstract class AbstractCache implements ICache, ICacheGenre {
 
     public void setContext(Context context) {
         this.context = context;
+    }
+
+    @Multiple
+    @Override
+    public String getAlias() {
+        return alias;
+    }
+
+    @Multiple
+    @Override
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+
+    @LSM
+    @Multiple
+    @Override
+    public CacheTransactionSimpleSession getTransaction() {
+        if (getCacheTransaction() instanceof CacheTransactionSimpleSession) {
+            return (CacheTransactionSimpleSession) getCacheTransaction();
+        }
+        return null;
     }
 
     public ICacheTransaction getCacheTransaction() {
@@ -60,7 +89,7 @@ public abstract class AbstractCache implements ICache, ICacheGenre {
                 ((ICacheGenre) getCacheTransaction()).setCache(getCache());
                 ((ICacheGenre) getCacheTransaction()).setDiskCache(getDiskCache());
                 if (null != getOnCacheTransactionListener()) {
-                    getOnCacheTransactionListener().onCacheTransactionChanged(cacheTransaction);
+                    getOnCacheTransactionListener().onCacheTransactionChanged(getAlias(), cacheTransaction);
                 }
             }
     }
@@ -69,6 +98,7 @@ public abstract class AbstractCache implements ICache, ICacheGenre {
         return onCacheTransactionListener;
     }
 
+    @Hide
     public void setOnCacheTransactionListener(OnCacheTransactionListener onCacheTransactionListener) {
         this.onCacheTransactionListener = onCacheTransactionListener;
     }

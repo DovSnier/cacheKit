@@ -9,6 +9,8 @@ import com.dvsnier.cache.base.Evictable;
 import com.dvsnier.cache.base.IEvictableManager;
 import com.dvsnier.cache.base.IGetInstantiate;
 import com.dvsnier.cache.config.Type;
+import com.dvsnier.cache.infrastructure.CacheStorage;
+import com.dvsnier.cache.infrastructure.Debug;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -67,6 +69,10 @@ public class CacheCleanManager implements IEvictableManager {
                 }
             }
         }
+
+        File cacheDir = CacheStorage.INSTANCE().getCacheDir(CacheManager.getInstance().getContext());
+        deleteDir(cacheDir);
+        Debug.v(String.format("we have deleted all files and their sub folders in the cache engine directory(%s).", cacheDir.getAbsolutePath()));
     }
 
     //</editor-fold>
@@ -123,7 +129,7 @@ public class CacheCleanManager implements IEvictableManager {
      * @param size folder size
      * @return the format unit with folder size
      */
-    public static String getFormatSize(double size) {
+    protected static String getFormatSize(double size) {
         double kiloByte = size / 1024;
         if (kiloByte < 1) {
             return size + "K";
@@ -149,15 +155,15 @@ public class CacheCleanManager implements IEvictableManager {
 
     @Hide
     public static void deleteDir(File file) {
-        if (file != null)
+        if (null != file && file.exists()) {
             if (file.isDirectory()) {
-                String[] children = file.list();
-                for (int i = 0; i < children.length; i++) {
-                    deleteDir(new File(file, children[i]));
+                File[] files = file.listFiles();
+                for (File itemFile : files) {
+                    deleteDir(itemFile);
                 }
-            } else {
-                //noinspection ResultOfMethodCallIgnored
-                file.delete();
             }
+            //noinspection ResultOfMethodCallIgnored
+            file.delete();
+        }
     }
 }

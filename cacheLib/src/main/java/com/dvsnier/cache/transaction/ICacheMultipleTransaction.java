@@ -12,7 +12,7 @@ import java.io.InputStream;
  * Created by dovsnier on 2019-07-10.
  */
 @Multiple
-public interface ICacheMultipleTransaction extends IAbstractMultipleTransaction {
+public interface ICacheMultipleTransaction<T> extends IAbstractMultipleTransaction<T> {
 
     /**
      * persistent string objects
@@ -20,9 +20,9 @@ public interface ICacheMultipleTransaction extends IAbstractMultipleTransaction 
      * @param type  {@link IType}
      * @param key   the current key
      * @param value the current value
-     * @return {@link ICacheTransaction}
+     * @return {@link ITransaction}
      */
-    ICacheTransaction putString(@NonNull String type, @NonNull String key, String value);
+    T putString(@NonNull String type, @NonNull String key, String value);
 
     /**
      * persistent stream objects
@@ -30,9 +30,9 @@ public interface ICacheMultipleTransaction extends IAbstractMultipleTransaction 
      * @param type        {@link IType}
      * @param key         the current key
      * @param inputStream the current value
-     * @return {@link ICacheTransaction}
+     * @return {@link ITransaction}
      */
-    ICacheTransaction putInputStream(@NonNull String type, @NonNull String key, InputStream inputStream);
+    T putInputStream(@NonNull String type, @NonNull String key, InputStream inputStream);
 
     /**
      * persistent objects
@@ -41,16 +41,16 @@ public interface ICacheMultipleTransaction extends IAbstractMultipleTransaction 
      * @param type  {@link IType}
      * @param key   the current key
      * @param value the current value
-     * @return {@link ICacheTransaction}
+     * @return {@link ITransaction}
      */
-    ICacheTransaction putObject(@NonNull String type, @NonNull String key, Object value);
+    T putObject(@NonNull String type, @NonNull String key, Object value);
 
     /**
      * access to string persistent objects
      *
      * @param type {@link IType}
      * @param key  the current key
-     * @return {@link String}
+     * @return {@see String}
      */
     String getString(@NonNull String type, @NonNull String key);
 
@@ -68,7 +68,7 @@ public interface ICacheMultipleTransaction extends IAbstractMultipleTransaction 
      *
      * @param type {@link IType}
      * @param key  the current key
-     * @return {@link Object}
+     * @return {@see Object}
      */
     Object getObject(@NonNull String type, @NonNull String key);
 

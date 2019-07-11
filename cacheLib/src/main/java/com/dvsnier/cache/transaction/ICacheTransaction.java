@@ -8,25 +8,25 @@ import java.io.InputStream;
  * ICacheTransaction
  * Created by dovsnier on 2018/6/12.
  */
-public interface ICacheTransaction extends IAbstractTransaction {
+public interface ICacheTransaction<T> extends IAbstractTransaction<T> {
 
     /**
      * persistent string objects
      *
      * @param key   the current key
      * @param value the current value
-     * @return {@link ICacheTransaction}
+     * @return {@link ITransaction}
      */
-    ICacheTransaction putString(@NonNull String key, String value);
+    T putString(@NonNull String key, String value);
 
     /**
      * persistent stream objects
      *
      * @param key         the current key
      * @param inputStream the current value
-     * @return {@link ICacheTransaction}
+     * @return {@link ITransaction}
      */
-    ICacheTransaction putInputStream(@NonNull String key, InputStream inputStream);
+    T putInputStream(@NonNull String key, InputStream inputStream);
 
     /**
      * persistent objects
@@ -34,15 +34,15 @@ public interface ICacheTransaction extends IAbstractTransaction {
      *
      * @param key   the current key
      * @param value the current value
-     * @return {@link ICacheTransaction}
+     * @return {@link T}
      */
-    ICacheTransaction putObject(@NonNull String key, Object value);
+    T putObject(@NonNull String key, Object value);
 
     /**
      * access to string persistent objects
      *
      * @param key the current key
-     * @return {@link String}
+     * @return {@see String}
      */
     String getString(@NonNull String key);
 
@@ -58,7 +58,7 @@ public interface ICacheTransaction extends IAbstractTransaction {
      * access to persistent objects
      *
      * @param key the current key
-     * @return {@link Object}
+     * @return {@see Object}
      */
     Object getObject(@NonNull String key);
 

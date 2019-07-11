@@ -1,44 +1,43 @@
 package com.dvsnier.cache.wrapper;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
-import com.dvsnier.cache.BuildConfig;
-import com.dvsnier.cache.base.AbstractCache;
-import com.dvsnier.cache.base.Cache;
-import com.dvsnier.cache.base.ICache;
+import com.dvsnier.cache.annotation.LSM;
+import com.dvsnier.cache.annotation.Multiple;
+import com.dvsnier.cache.base.AbstractCacheSession;
+import com.dvsnier.cache.base.CacheSession;
 import com.dvsnier.cache.base.ICacheEngine;
 import com.dvsnier.cache.base.ICacheGenre;
+import com.dvsnier.cache.base.ICacheSession;
 import com.dvsnier.cache.base.IGetInstantiate;
 import com.dvsnier.cache.base.Instantiate;
-import com.dvsnier.cache.config.ICacheAPI;
+import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.config.ICacheConfig;
-import com.dvsnier.cache.transaction.ICacheTransaction;
-import com.dvsnier.cache.transaction.IGetCacheTransaction;
+import com.dvsnier.cache.transaction.CacheTransactionSession;
+import com.dvsnier.cache.transaction.IGetCacheTransactionSession;
 
 /**
  * CacheWrapper
  * Created by dovsnier on 2019-07-02.
  */
-public class CacheWrapper implements ICacheWrapper, IGetInstantiate, ICacheAPI {
+public class CacheWrapper implements ICacheWrapper, IGetInstantiate {
 
     protected ICacheEngine instantiate;
-    protected ICache cache;
+    protected ICacheSession cacheSession;
 
     public CacheWrapper() {
         if (null == instantiate) {
             instantiate = new Instantiate();
         }
-        cache = new Cache();
+        cacheSession = new CacheSession();
     }
 
-    public CacheWrapper(Cache cache) {
+    public CacheWrapper(CacheSession cacheSession) {
         if (null == instantiate) {
             instantiate = new Instantiate();
         }
-        this.cache = cache;
+        this.cacheSession = cacheSession;
     }
 
     //<editor-fold desc="Closable">
@@ -51,8 +50,8 @@ public class CacheWrapper implements ICacheWrapper, IGetInstantiate, ICacheAPI {
         if (null != instantiate) {
             instantiate = null;
         }
-        if (null != cache) {
-            cache = null;
+        if (null != cacheSession) {
+            cacheSession = null;
         }
     }
 
@@ -67,18 +66,20 @@ public class CacheWrapper implements ICacheWrapper, IGetInstantiate, ICacheAPI {
         }
         if (null != getInstantiate()) {
             getInstantiate().initialize(context);
+            if (getInstantiate() instanceof IAlias && getCacheSession() instanceof IAlias) {
+                ((IAlias) getCacheSession()).setAlias(((IAlias) getInstantiate()).getAlias());
+            }
             if (getInstantiate() instanceof Instantiate) {
-                if (getCache() instanceof ICacheGenre) {
+                if (getCacheSession() instanceof ICacheGenre) {
                     //noinspection unchecked
-                    ((ICacheGenre) getCache()).setCache(((Instantiate) getInstantiate()).getLruCache());
-                    ((ICacheGenre) getCache()).setDiskCache(((Instantiate) getInstantiate()).getDiskLruCache());
+                    ((ICacheGenre) getCacheSession()).setCache(((Instantiate) getInstantiate()).getLruCache());
+                    ((ICacheGenre) getCacheSession()).setDiskCache(((Instantiate) getInstantiate()).getDiskLruCache());
                 }
             }
         }
-        if (getCache() instanceof AbstractCache) {
-            ((AbstractCache) getCache()).setOrScheduledCacheTransaction();
+        if (getCacheSession() instanceof AbstractCacheSession) {
+            ((AbstractCacheSession) getCacheSession()).setOrScheduledCacheTransaction();
         }
-        onSdkCallback(context);
     }
 
     @Override
@@ -92,45 +93,35 @@ public class CacheWrapper implements ICacheWrapper, IGetInstantiate, ICacheAPI {
         }
         if (null != getInstantiate()) {
             getInstantiate().initialize(cacheConfig);
+            if (getInstantiate() instanceof IAlias && getCacheSession() instanceof IAlias) {
+                ((IAlias) getCacheSession()).setAlias(((IAlias) getInstantiate()).getAlias());
+            }
             if (getInstantiate() instanceof Instantiate) {
                 if (getInstantiate() instanceof Instantiate) {
-                    if (getCache() instanceof ICacheGenre) {
+                    if (getCacheSession() instanceof ICacheGenre) {
                         //noinspection unchecked
-                        ((ICacheGenre) getCache()).setCache(((Instantiate) getInstantiate()).getLruCache());
-                        ((ICacheGenre) getCache()).setDiskCache(((Instantiate) getInstantiate()).getDiskLruCache());
+                        ((ICacheGenre) getCacheSession()).setCache(((Instantiate) getInstantiate()).getLruCache());
+                        ((ICacheGenre) getCacheSession()).setDiskCache(((Instantiate) getInstantiate()).getDiskLruCache());
                     }
                 }
             }
         }
-        if (getCache() instanceof AbstractCache) {
-            ((AbstractCache) getCache()).setOrScheduledCacheTransaction();
-        }
-        onSdkCallback(cacheConfig.getContext());
-    }
-
-    //</editor-fold>
-    //<editor-fold desc="ICacheAPI">
-
-    @SuppressLint("ApplySharedPref")
-    @Override
-    public void onSdkCallback(@NonNull Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(SDK_FILE_NAME, Context.MODE_PRIVATE);
-        if (null != sharedPreferences) {
-            SharedPreferences.Editor edit = sharedPreferences.edit();
-            if (null != edit) {
-                edit.putString(SDK_VERSION_KEY, BuildConfig.cache_sdk_version);
-                edit.commit();
-            }
+        if (getCacheSession() instanceof AbstractCacheSession) {
+            ((AbstractCacheSession) getCacheSession()).setOrScheduledCacheTransaction();
         }
     }
 
     //</editor-fold>
     //<editor-fold desc="IGetCacheTransaction">
 
+    @LSM
+    @Multiple
     @Override
-    public ICacheTransaction getTransaction() {
-        if (null != getCache() && getCache() instanceof IGetCacheTransaction) {
-            return ((IGetCacheTransaction) getCache()).getTransaction();
+    public CacheTransactionSession getTransaction() {
+        if (null != getCacheSession() && getCacheSession() instanceof IGetCacheTransactionSession) {
+//            return ((IGetCacheTransactionSession<CacheTransactionSimpleSession>) getCacheSession()).getTransaction();
+            // TODO: 2019-07-12 兼容性处理CacheTransactionSession 和CacheTransactionSimpleSession 问题
+            return (CacheTransactionSession) ((IGetCacheTransactionSession) getCacheSession()).getTransaction();
         }
         return null;
     }
@@ -146,11 +137,11 @@ public class CacheWrapper implements ICacheWrapper, IGetInstantiate, ICacheAPI {
         this.instantiate = instantiate;
     }
 
-    public ICache getCache() {
-        return cache;
+    public ICacheSession getCacheSession() {
+        return cacheSession;
     }
 
-    public void setCache(ICache cache) {
-        this.cache = cache;
+    public void setCacheSession(ICacheSession cacheSession) {
+        this.cacheSession = cacheSession;
     }
 }
