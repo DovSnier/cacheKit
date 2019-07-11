@@ -2,9 +2,11 @@ package com.dvsnier.cache.base;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.dvsnier.cache.config.ICacheConfig;
-import com.dvsnier.cache.infrastructure.CacheUtil;
+import com.dvsnier.cache.config.Type;
+import com.dvsnier.cache.infrastructure.CacheStorage;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +20,7 @@ import libcore.io.LruCache;
  * Instantiate
  * Created by dovsnier on 2019-07-09.
  */
-public class Instantiate implements ICacheEngine {
+public class Instantiate implements ICacheEngine, Evictable {
 
     protected Context context;
     protected ILruCache lruCache;
@@ -36,7 +38,7 @@ public class Instantiate implements ICacheEngine {
         long maxMemory = Runtime.getRuntime().maxMemory();
         int size = (int) (maxMemory / 8);
         lruCache = new LruCache<>(size);
-        File cache = CacheUtil.getInstance().getDiskCacheDir(context, null);
+        File cache = CacheStorage.INSTANCE().getDiskCacheDir(context, null);
         try {
             diskLruCache = DiskLruCache.open(cache, 1, 1, ICache.DEFAULT_MAX_SIZE);
         } catch (IOException e) {
@@ -57,7 +59,8 @@ public class Instantiate implements ICacheEngine {
             int appVersion = cacheConfig.getAppVersion();
             int valueCount = cacheConfig.getValueCount();
             long cacheMaxSizeOfDisk = cacheConfig.getCacheMaxSizeOfDisk();
-            diskLruCache = DiskLruCache.open(null != cacheDirectory ? cacheDirectory : CacheUtil.getInstance().getDiskCacheDir(context, null),
+            diskLruCache = DiskLruCache.open(null != cacheDirectory ? cacheDirectory : TextUtils.isEmpty(cacheConfig.getUniqueName()) ?
+                            CacheStorage.INSTANCE().getDiskCacheDir(context, null) : CacheStorage.INSTANCE().getDiskCacheDir(context, cacheConfig.getUniqueName()),
                     appVersion > 0 ? appVersion : 1,
                     valueCount > 0 ? valueCount : 1,
                     cacheMaxSizeOfDisk > 0 ? cacheMaxSizeOfDisk : ICache.DEFAULT_MAX_SIZE);
@@ -77,6 +80,36 @@ public class Instantiate implements ICacheEngine {
                 e.printStackTrace();
             }
             diskLruCache = null;
+        }
+    }
+
+    @Override
+    public boolean evict(@NonNull Type type) {
+        switch (type) {
+            case MEMORY:
+                if (null != getLruCache()) {
+                    getLruCache().evictAll();
+                }
+                return true;
+            case DISK:
+                if (null != getDiskLruCache()) {
+                    getDiskLruCache().evictAll();
+                }
+                return true;
+            case DEFAULT:
+                evictAll();
+                return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void evictAll() {
+        if (null != getLruCache()) {
+            getLruCache().evictAll();
+        }
+        if (null != getDiskLruCache()) {
+            getDiskLruCache().evictAll();
         }
     }
 

@@ -11,6 +11,7 @@ import com.dvsnier.cache.base.Cache;
 import com.dvsnier.cache.base.ICache;
 import com.dvsnier.cache.base.ICacheEngine;
 import com.dvsnier.cache.base.ICacheGenre;
+import com.dvsnier.cache.base.IGetInstantiate;
 import com.dvsnier.cache.base.Instantiate;
 import com.dvsnier.cache.config.ICacheAPI;
 import com.dvsnier.cache.config.ICacheConfig;
@@ -21,7 +22,7 @@ import com.dvsnier.cache.transaction.IGetCacheTransaction;
  * CacheWrapper
  * Created by dovsnier on 2019-07-02.
  */
-public class CacheWrapper implements ICacheWrapper, ICacheAPI {
+public class CacheWrapper implements ICacheWrapper, IGetInstantiate, ICacheAPI {
 
     protected ICacheEngine instantiate;
     protected ICache cache;
@@ -136,7 +137,7 @@ public class CacheWrapper implements ICacheWrapper, ICacheAPI {
 
     //</editor-fold>
 
-
+    @Override
     public ICacheEngine getInstantiate() {
         return instantiate;
     }
