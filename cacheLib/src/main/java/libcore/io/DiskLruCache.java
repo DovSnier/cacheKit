@@ -690,6 +690,20 @@ public final class DiskLruCache implements IDiskLruCache {
      * all files in the cache directory including files that weren't created by
      * the cache.
      */
+    @Override
+    public void evictAll() {
+        try {
+            delete();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Closes the cache and deletes all of its stored values. This will delete
+     * all files in the cache directory including files that weren't created by
+     * the cache.
+     */
     public void delete() throws IOException {
         close();
         deleteContents(directory);

@@ -270,6 +270,7 @@ public class LruCache<K, V> implements ILruCache<K, V> {
     /**
      * Clear the cache, calling {@link #entryRemoved} on each removed entry.
      */
+    @Override
     public final void evictAll() {
         trimToSize(-1); // -1 will evict 0-sized elements
     }
