@@ -1,13 +1,14 @@
 package com.dvsnier.cache.base;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 
 import com.dvsnier.cache.annotation.Hide;
 import com.dvsnier.cache.annotation.LSM;
 import com.dvsnier.cache.annotation.Multiple;
 import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.transaction.CacheTransaction;
-import com.dvsnier.cache.transaction.CacheTransactionSimpleSession;
+import com.dvsnier.cache.transaction.CacheTransactionSession;
 import com.dvsnier.cache.transaction.ICacheTransaction;
 import com.dvsnier.cache.transaction.IGetCacheTransactionSession;
 import com.dvsnier.cache.transaction.OnCacheTransactionListener;
@@ -16,7 +17,7 @@ import com.dvsnier.cache.transaction.OnCacheTransactionListener;
  * AbstractCacheSession
  * Created by dovsnier on 2019-07-02.
  */
-public abstract class AbstractCacheSession implements ICacheSession, ICacheGenre, IAlias, IGetCacheTransactionSession<CacheTransactionSimpleSession> {
+public abstract class AbstractCacheSession implements ICacheSession, ICacheGenre, IAlias, IGetCacheTransactionSession<CacheTransactionSession> {
 
     protected Context context;
     protected String alias;
@@ -60,14 +61,19 @@ public abstract class AbstractCacheSession implements ICacheSession, ICacheGenre
     @Override
     public void setAlias(String alias) {
         this.alias = alias;
+        if (null != getTransaction()) {
+            getTransaction().setAlias(alias);
+        }
     }
 
     @LSM
+    @Nullable
     @Multiple
     @Override
-    public CacheTransactionSimpleSession getTransaction() {
-        if (getCacheTransaction() instanceof CacheTransactionSimpleSession) {
-            return (CacheTransactionSimpleSession) getCacheTransaction();
+    public CacheTransactionSession getTransaction() {
+        if (getCacheTransaction() instanceof ITransactionSession) {
+            //noinspection unchecked
+            return ((ITransactionSession<CacheTransactionSession>) getCacheTransaction()).getTransactionSession();
         }
         return null;
     }

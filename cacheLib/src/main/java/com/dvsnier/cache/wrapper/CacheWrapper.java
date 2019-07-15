@@ -2,6 +2,7 @@ package com.dvsnier.cache.wrapper;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.dvsnier.cache.annotation.LSM;
 import com.dvsnier.cache.annotation.Multiple;
@@ -116,12 +117,12 @@ public class CacheWrapper implements ICacheWrapper, IGetInstantiate {
 
     @LSM
     @Multiple
+    @Nullable
     @Override
     public CacheTransactionSession getTransaction() {
         if (null != getCacheSession() && getCacheSession() instanceof IGetCacheTransactionSession) {
-//            return ((IGetCacheTransactionSession<CacheTransactionSimpleSession>) getCacheSession()).getTransaction();
-            // TODO: 2019-07-12 兼容性处理CacheTransactionSession 和CacheTransactionSimpleSession 问题
-            return (CacheTransactionSession) ((IGetCacheTransactionSession) getCacheSession()).getTransaction();
+            //noinspection unchecked
+            return ((IGetCacheTransactionSession<CacheTransactionSession>) getCacheSession()).getTransaction();
         }
         return null;
     }

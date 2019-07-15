@@ -2,71 +2,180 @@ package com.dvsnier.cache.transaction;
 
 import android.support.annotation.NonNull;
 
+import com.dvsnier.cache.annotation.Internal;
+
 import java.io.InputStream;
 
 /**
  * CacheTransactionSession
- * Created by dovsnier on 2019-07-12.
+ * Created by dovsnier on 2019-07-15.
  */
-public interface CacheTransactionSession extends ICacheTransaction<CacheTransactionSession>, ICacheMultipleTransaction<CacheTransactionSession> {
+public abstract class CacheTransactionSession implements ICacheTransactionSession<CacheTransactionSession> {
+
+    protected String alias;
+    protected ICacheTransaction<CacheTransactionSession> internalCacheTransactionListener;
+    protected OnTransactionSessionChangeListener onTransactionSessionChangeListener;
 
     @Override
-    CacheTransactionSession putString(@NonNull String type, @NonNull String key, String value);
+    public CacheTransactionSession putString(@NonNull String type, @NonNull String key, String value) {
+        return putString(key, value);
+    }
 
     @Override
-    CacheTransactionSession putInputStream(@NonNull String type, @NonNull String key, InputStream inputStream);
+    public CacheTransactionSession putInputStream(@NonNull String type, @NonNull String key, InputStream inputStream) {
+        return putInputStream(key, inputStream);
+    }
 
     @Override
-    CacheTransactionSession putObject(@NonNull String type, @NonNull String key, Object value);
+    public CacheTransactionSession putObject(@NonNull String type, @NonNull String key, Object value) {
+        return putObject(key, value);
+    }
 
     @Override
-    String getString(@NonNull String type, @NonNull String key);
+    public String getString(@NonNull String type, @NonNull String key) {
+        return getString(key);
+    }
 
     @Override
-    InputStream getInputStream(@NonNull String type, @NonNull String key);
+    public InputStream getInputStream(@NonNull String type, @NonNull String key) {
+        return getInputStream(key);
+    }
 
     @Override
-    Object getObject(@NonNull String type, @NonNull String key);
+    public Object getObject(@NonNull String type, @NonNull String key) {
+        return getObject(key);
+    }
 
     @Override
-    CacheTransactionSession put(@NonNull String type, @NonNull String key, Object value);
+    public CacheTransactionSession put(@NonNull String type, @NonNull String key, Object value) {
+        return put(key, value);
+    }
 
     @Override
-    Object get(@NonNull String type, @NonNull String key);
+    public Object get(@NonNull String type, @NonNull String key) {
+        return get(key);
+    }
 
     @Override
-    CacheTransactionSession remove(@NonNull String type, @NonNull String key);
+    public CacheTransactionSession remove(@NonNull String type, @NonNull String key) {
+        return remove(key);
+    }
 
     @Override
-    boolean commit(@NonNull String type);
+    public boolean commit(@NonNull String type) {
+        return commit();
+    }
 
     @Override
-    CacheTransactionSession putString(@NonNull String key, String value);
+    public CacheTransactionSession putString(@NonNull String key, String value) {
+        if (null != getCacheTransactionListener()) {
+            return getCacheTransactionListener().put(key, value);
+        }
+        return this;
+    }
 
     @Override
-    CacheTransactionSession putInputStream(@NonNull String key, InputStream inputStream);
+    public CacheTransactionSession putInputStream(@NonNull String key, InputStream inputStream) {
+        if (null != getCacheTransactionListener()) {
+            return getCacheTransactionListener().putInputStream(key, inputStream);
+        }
+        return this;
+    }
 
     @Override
-    CacheTransactionSession putObject(@NonNull String key, Object value);
+    public CacheTransactionSession putObject(@NonNull String key, Object value) {
+        if (null != getCacheTransactionListener()) {
+            return getCacheTransactionListener().putObject(key, value);
+        }
+        return this;
+    }
 
     @Override
-    String getString(@NonNull String key);
+    public String getString(@NonNull String key) {
+        if (null != getCacheTransactionListener()) {
+            return getCacheTransactionListener().getString(key);
+        }
+        return null;
+    }
 
     @Override
-    InputStream getInputStream(@NonNull String key);
+    public InputStream getInputStream(@NonNull String key) {
+        if (null != getCacheTransactionListener()) {
+            return getCacheTransactionListener().getInputStream(key);
+        }
+        return null;
+    }
 
     @Override
-    Object getObject(@NonNull String key);
+    public Object getObject(@NonNull String key) {
+        if (null != getCacheTransactionListener()) {
+            return getCacheTransactionListener().getObject(key);
+        }
+        return null;
+    }
 
     @Override
-    CacheTransactionSession put(@NonNull String key, Object value);
+    public CacheTransactionSession put(@NonNull String key, Object value) {
+        if (null != getCacheTransactionListener()) {
+            return getCacheTransactionListener().put(key, value);
+        }
+        return this;
+    }
 
     @Override
-    Object get(@NonNull String key);
+    public Object get(@NonNull String key) {
+        if (null != getCacheTransactionListener()) {
+            return getCacheTransactionListener().get(key);
+        }
+        return null;
+    }
 
     @Override
-    CacheTransactionSession remove(@NonNull String key);
+    public CacheTransactionSession remove(@NonNull String key) {
+        if (null != getCacheTransactionListener()) {
+            return getCacheTransactionListener().remove(key);
+        }
+        return this;
+    }
 
     @Override
-    boolean commit();
+    public boolean commit() {
+        if (null != getCacheTransactionListener()) {
+            return getCacheTransactionListener().commit();
+        }
+        return false;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+
+    @Internal
+    protected ICacheTransaction<CacheTransactionSession> getCacheTransactionListener() {
+        return internalCacheTransactionListener;
+    }
+
+    @Internal
+    protected void setCacheTransactionListener(ICacheTransaction<CacheTransactionSession> cacheTransactionListener) {
+        this.internalCacheTransactionListener = cacheTransactionListener;
+    }
+
+    public OnTransactionSessionChangeListener getOnTransactionSessionChangeListener() {
+        return onTransactionSessionChangeListener;
+    }
+
+    public void setOnTransactionSessionChangeListener(OnTransactionSessionChangeListener onTransactionSessionChangeListener) {
+        this.onTransactionSessionChangeListener = onTransactionSessionChangeListener;
+    }
+
+    @Override
+    public String toString() {
+        return "CacheTransactionSession{" +
+                "alias='" + alias + '\'' +
+                '}';
+    }
 }
