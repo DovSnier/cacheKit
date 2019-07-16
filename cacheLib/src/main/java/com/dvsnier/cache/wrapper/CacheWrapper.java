@@ -3,7 +3,9 @@ package com.dvsnier.cache.wrapper;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
+import com.dvsnier.cache.annotation.Hide;
 import com.dvsnier.cache.annotation.LSM;
 import com.dvsnier.cache.annotation.Multiple;
 import com.dvsnier.cache.base.AbstractCacheSession;
@@ -16,7 +18,12 @@ import com.dvsnier.cache.base.Instantiate;
 import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.config.ICacheConfig;
 import com.dvsnier.cache.transaction.CacheTransactionSession;
+import com.dvsnier.cache.transaction.IGetCacheTransaction;
 import com.dvsnier.cache.transaction.IGetCacheTransactionSession;
+import com.dvsnier.cache.transaction.ISetCacheTransactionListener;
+import com.dvsnier.cache.transaction.ISetTransactionSessionChangeListener;
+import com.dvsnier.cache.transaction.OnCacheTransactionListener;
+import com.dvsnier.cache.transaction.OnTransactionSessionChangeListener;
 
 /**
  * CacheWrapper
@@ -30,6 +37,16 @@ public class CacheWrapper implements ICacheWrapper, IGetInstantiate {
     public CacheWrapper() {
         if (null == instantiate) {
             instantiate = new Instantiate();
+        }
+        cacheSession = new CacheSession();
+    }
+
+    public CacheWrapper(String alias) {
+        if (TextUtils.isEmpty(alias)) {
+            throw new IllegalArgumentException("the alias parameter cannot be null.");
+        }
+        if (null == instantiate) {
+            instantiate = new Instantiate(alias);
         }
         cacheSession = new CacheSession();
     }
@@ -138,11 +155,40 @@ public class CacheWrapper implements ICacheWrapper, IGetInstantiate {
         this.instantiate = instantiate;
     }
 
+    @Override
     public ICacheSession getCacheSession() {
         return cacheSession;
     }
 
     public void setCacheSession(ICacheSession cacheSession) {
         this.cacheSession = cacheSession;
+    }
+
+    /**
+     * the setting up cached session listening
+     *
+     * @param onCacheTransactionListener {@link OnCacheTransactionListener}
+     * @deprecated
+     */
+    @Hide
+    public void setOnCacheTransactionListener(OnCacheTransactionListener onCacheTransactionListener) {
+        if (getCacheSession() instanceof ISetCacheTransactionListener) {
+            //noinspection unchecked
+            ((ISetCacheTransactionListener<OnCacheTransactionListener>) getCacheSession()).setOnCacheTransactionListener(onCacheTransactionListener);
+        }
+    }
+
+    /**
+     * the setting up cached session listening
+     *
+     * @param onTransactionSessionChangeListener {@link OnTransactionSessionChangeListener}
+     */
+    public void setOnTransactionSessionChangeListener(OnTransactionSessionChangeListener onTransactionSessionChangeListener) {
+        if (getCacheSession() instanceof IGetCacheTransaction) {
+            if (((IGetCacheTransaction) getCacheSession()).getCacheTransaction() instanceof ISetTransactionSessionChangeListener) {
+                //noinspection unchecked
+                ((ISetTransactionSessionChangeListener<OnTransactionSessionChangeListener>) ((IGetCacheTransaction) getCacheSession()).getCacheTransaction()).setOnTransactionSessionChangeListener(onTransactionSessionChangeListener);
+            }
+        }
     }
 }

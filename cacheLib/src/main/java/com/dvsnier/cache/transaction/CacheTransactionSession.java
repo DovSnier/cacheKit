@@ -14,7 +14,6 @@ public abstract class CacheTransactionSession implements ICacheTransactionSessio
 
     protected String alias;
     protected ICacheTransaction<CacheTransactionSession> internalCacheTransactionListener;
-    protected OnTransactionSessionChangeListener onTransactionSessionChangeListener;
 
     @Override
     public CacheTransactionSession putString(@NonNull String type, @NonNull String key, String value) {
@@ -162,14 +161,6 @@ public abstract class CacheTransactionSession implements ICacheTransactionSessio
     @Internal
     protected void setCacheTransactionListener(ICacheTransaction<CacheTransactionSession> cacheTransactionListener) {
         this.internalCacheTransactionListener = cacheTransactionListener;
-    }
-
-    public OnTransactionSessionChangeListener getOnTransactionSessionChangeListener() {
-        return onTransactionSessionChangeListener;
-    }
-
-    public void setOnTransactionSessionChangeListener(OnTransactionSessionChangeListener onTransactionSessionChangeListener) {
-        this.onTransactionSessionChangeListener = onTransactionSessionChangeListener;
     }
 
     @Override

@@ -8,4 +8,10 @@ import libcore.base.IBaseCache;
  */
 public interface ICacheSession extends IBaseCache, ISession {
 
+    /**
+     * the get cache session
+     *
+     * @return {@link ICacheSession}
+     */
+    ICacheSession getCacheSession();
 }

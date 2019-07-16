@@ -10,7 +10,6 @@ import com.dvsnier.cache.annotation.Multiple;
 import com.dvsnier.cache.base.AbstractCacheManager;
 import com.dvsnier.cache.base.Closable;
 import com.dvsnier.cache.base.IGetInstantiate;
-import com.dvsnier.cache.base.IMultipleInstantiate;
 import com.dvsnier.cache.config.CacheAllocation;
 import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.config.ICacheConfig;
@@ -19,7 +18,10 @@ import com.dvsnier.cache.config.OnCacheAllocationListener;
 import com.dvsnier.cache.infrastructure.Debug;
 import com.dvsnier.cache.transaction.CacheTransactionSession;
 import com.dvsnier.cache.transaction.IGetCacheTransactionSession;
+import com.dvsnier.cache.transaction.OnCacheTransactionListener;
+import com.dvsnier.cache.transaction.OnTransactionSessionChangeListener;
 import com.dvsnier.cache.wrapper.CacheWrapper;
+import com.dvsnier.cache.wrapper.ICacheWrapper;
 
 import java.io.InputStream;
 import java.util.Enumeration;
@@ -87,19 +89,16 @@ public class CacheManager extends AbstractCacheManager {
         if (!TextUtils.isEmpty(type)) {
             if (getCachePool().containsKey(type.trim())) {
                 IBaseCache cache = getCachePool().get(type);
-                if (cache instanceof IMultipleInstantiate) {
-                    ((IMultipleInstantiate) cache).initialize(type, context);
+                if (cache instanceof ICacheWrapper) {
+                    ((ICacheWrapper) cache).initialize(context);
                     Debug.d(String.format("the %s cache engine initialized.", type));
                 }
             } else {
                 Debug.w(String.format("no %s cache engine was found from the cache pool and then rebuilt to build a %s cache engine.", type, type));
-                CacheWrapper cache = new CacheWrapper();
+                ICacheWrapper cache = new CacheWrapper(type);
                 getCachePool().put(type.trim(), cache);
-                //noinspection ConstantConditions
-                if (cache instanceof IMultipleInstantiate) {
-                    ((IMultipleInstantiate) cache).initialize(type, context);
-                    Debug.d(String.format("the reconstruct build %s cache engine initialized.", type));
-                }
+                cache.initialize(context);
+                Debug.d(String.format("the reconstruct build %s cache engine initialized.", type));
             }
         }
     }
@@ -133,19 +132,16 @@ public class CacheManager extends AbstractCacheManager {
         if (!TextUtils.isEmpty(type)) {
             if (getCachePool().containsKey(type.trim())) {
                 IBaseCache cache = getCachePool().get(type);
-                if (cache instanceof IMultipleInstantiate) {
-                    ((IMultipleInstantiate) cache).initialize(type, cacheConfig);
+                if (cache instanceof ICacheWrapper) {
+                    ((ICacheWrapper) cache).initialize(cacheConfig);
                     Debug.d(String.format("the %s cache engine initialized.", type));
                 }
             } else {
                 Debug.w(String.format("no %s cache engine was found from the cache pool and then rebuilt to build a %s cache engine.", type, type));
-                CacheWrapper cache = new CacheWrapper();
+                ICacheWrapper cache = new CacheWrapper(type);
                 getCachePool().put(type.trim(), cache);
-                //noinspection ConstantConditions
-                if (cache instanceof IMultipleInstantiate) {
-                    ((IMultipleInstantiate) cache).initialize(type, cacheConfig);
-                    Debug.d(String.format("the reconstruct build %s cache engine initialized.", type));
-                }
+                cache.initialize(cacheConfig);
+                Debug.d(String.format("the reconstruct build %s cache engine initialized.", type));
             }
         }
     }
@@ -383,13 +379,10 @@ public class CacheManager extends AbstractCacheManager {
                 return getCachePool().get(type.trim());
             } else {
                 Debug.w(String.format("no %s cache engine was found from the cache pool and then rebuilt to build a %s cache engine", type, type));
-                CacheWrapper value = new CacheWrapper();
+                ICacheWrapper value = new CacheWrapper(type);
                 getCachePool().put(type.trim(), value);
-                //noinspection ConstantConditions
-                if (value instanceof IMultipleInstantiate) {
-                    ((IMultipleInstantiate) value).initialize(type, context);
-                    Debug.d(String.format("the reconstruct build %s cache engine initialized", type));
-                }
+                value.initialize(context);
+                Debug.d(String.format("the reconstruct build %s cache engine initialized", type));
                 return value;
             }
         }
@@ -427,11 +420,13 @@ public class CacheManager extends AbstractCacheManager {
 
     //</editor-fold>
 
-    public CacheWrapper getCacheWrapper() {
+    @Hide
+    protected CacheWrapper getCacheWrapper() {
         return cacheWrapper;
     }
 
-    public void setCacheWrapper(CacheWrapper cacheWrapper) {
+    @Hide
+    protected void setCacheWrapper(CacheWrapper cacheWrapper) {
         this.cacheWrapper = cacheWrapper;
     }
 
@@ -448,6 +443,46 @@ public class CacheManager extends AbstractCacheManager {
     public final void setOnCacheAllocationListener(OnCacheAllocationListener onCacheAllocationListener) {
         this.onCacheAllocationListener = onCacheAllocationListener;
         CacheAllocation.INSTANCE().setOnCacheAllocationListener(getOnCacheAllocationListener());
+    }
+
+    /**
+     * the setting up cached session listening
+     *
+     * @param type                       {@link IType}
+     * @param onCacheTransactionListener {@link OnCacheTransactionListener}
+     * @deprecated
+     */
+    @Hide
+    public void setOnCacheTransactionListener(@NonNull String type, OnCacheTransactionListener onCacheTransactionListener) {
+        if (TextUtils.isEmpty(type)) {
+            if (getDefaultCache() instanceof CacheWrapper) {
+                ((CacheWrapper) getDefaultCache()).setOnCacheTransactionListener(onCacheTransactionListener);
+            }
+        } else {
+            IBaseCache cache = getCache(type);
+            if (cache instanceof CacheWrapper) {
+                ((CacheWrapper) cache).setOnCacheTransactionListener(onCacheTransactionListener);
+            }
+        }
+    }
+
+    /**
+     * the setting up cached session listening
+     *
+     * @param type                               {@link IType}
+     * @param onTransactionSessionChangeListener {@link OnTransactionSessionChangeListener}
+     */
+    public void setOnTransactionSessionChangeListener(@NonNull String type, OnTransactionSessionChangeListener onTransactionSessionChangeListener) {
+        if (TextUtils.isEmpty(type)) {
+            if (getDefaultCache() instanceof CacheWrapper) {
+                ((CacheWrapper) getDefaultCache()).setOnTransactionSessionChangeListener(onTransactionSessionChangeListener);
+            }
+        } else {
+            IBaseCache cache = getCache(type);
+            if (cache instanceof CacheWrapper) {
+                ((CacheWrapper) cache).setOnTransactionSessionChangeListener(onTransactionSessionChangeListener);
+            }
+        }
     }
 
     public Context getContext() {

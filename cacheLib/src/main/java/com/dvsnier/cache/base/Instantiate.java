@@ -33,7 +33,7 @@ import libcore.io.LruCache;
  * Instantiate
  * Created by dovsnier on 2019-07-09.
  */
-public class Instantiate implements ICacheEngine, ICacheEngineConfig, IMultipleInstantiate, IAlias, Evictable, ICacheAPI {
+public class Instantiate implements ICacheEngine, ICacheEngineConfig, IAlias, Evictable, ICacheAPI {
 
     protected Context context;
     protected String alias;
@@ -46,6 +46,10 @@ public class Instantiate implements ICacheEngine, ICacheEngineConfig, IMultipleI
 
     public Instantiate() {
         setAlias(IType.TYPE_NONE);
+    }
+
+    public Instantiate(String alias) {
+        setAlias(alias);
     }
 
     public Instantiate(Context context) {
@@ -80,11 +84,11 @@ public class Instantiate implements ICacheEngine, ICacheEngineConfig, IMultipleI
         }
     }
 
-    @Override
-    public void initialize(@NonNull String type, @NonNull Context context) {
-        setAlias(type);
-        initialize(context);
-    }
+//    @Override
+//    public void initialize(@NonNull String type, @NonNull Context context) {
+//        setAlias(type);
+//        initialize(context);
+//    }
 
     @Override
     public void initialize(@NonNull ICacheConfig cacheConfig) {
@@ -103,8 +107,12 @@ public class Instantiate implements ICacheEngine, ICacheEngineConfig, IMultipleI
             int appVersion = cacheConfig.getAppVersion();
             int valueCount = cacheConfig.getValueCount();
             long cacheMaxSizeOfDisk = cacheConfig.getCacheMaxSizeOfDisk();
-            File directory = null != cacheDirectory ? cacheDirectory : TextUtils.isEmpty(cacheConfig.getUniqueName()) ?
-                    CacheStorage.INSTANCE().getDiskCacheDir(context, null) : CacheStorage.INSTANCE().getDiskCacheDir(context, cacheConfig.getUniqueName());
+            String uniqueName = cacheConfig.getUniqueName();
+            if (!TextUtils.isEmpty(uniqueName) && !uniqueName.equals(getAlias())) {
+                setAlias(uniqueName);
+            }
+            File directory = null != cacheDirectory ? cacheDirectory : TextUtils.isEmpty(uniqueName) ?
+                    CacheStorage.INSTANCE().getDiskCacheDir(context, null) : CacheStorage.INSTANCE().getDiskCacheDir(context, uniqueName);
             Debug.d(String.format("the current cache engine(%s - memory:           %sm)", getAlias(), CacheStorage.INSTANCE().getFormattedNoUnit(cacheMaxSizeOfMemory, CacheStorage.SCU.M)));
             int version = appVersion > IBaseCache.DEFAULT ? appVersion : IBaseCache.ONE;
             int count = valueCount > IBaseCache.DEFAULT ? valueCount : IBaseCache.ONE;
@@ -124,11 +132,11 @@ public class Instantiate implements ICacheEngine, ICacheEngineConfig, IMultipleI
         }
     }
 
-    @Override
-    public void initialize(@NonNull String type, @NonNull ICacheConfig cacheConfig) {
-        setAlias(type);
-        initialize(cacheConfig);
-    }
+//    @Override
+//    public void initialize(@NonNull String type, @NonNull ICacheConfig cacheConfig) {
+//        setAlias(type);
+//        initialize(cacheConfig);
+//    }
 
     @Override
     public void close() {

@@ -123,7 +123,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
         }
         if (validateOnTransactionSessionChangeListener()) {
             //noinspection ConstantConditions
-            getTransactionSession().getOnTransactionSessionChangeListener().onTransactionSessionChange(getTransactionSession().getAlias(), key, value);
+            getOnTransactionSessionChangeListener().onTransactionSessionChange(getTransactionSession().getAlias(), key, value);
 
         }
         return getCacheTransaction(Type.DEFAULT);
@@ -192,7 +192,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
         }
         if (validateOnTransactionSessionChangeListener()) {
             //noinspection ConstantConditions
-            getTransactionSession().getOnTransactionSessionChangeListener().onTransactionSessionChange(getTransactionSession().getAlias(), key, inputStream);
+            getOnTransactionSessionChangeListener().onTransactionSessionChange(getTransactionSession().getAlias(), key, inputStream);
 
         }
         return getCacheTransaction(Type.DEFAULT);
@@ -263,7 +263,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
         }
         if (validateOnTransactionSessionChangeListener()) {
             //noinspection ConstantConditions
-            getTransactionSession().getOnTransactionSessionChangeListener().onTransactionSessionChange(getTransactionSession().getAlias(), key, value);
+            getOnTransactionSessionChangeListener().onTransactionSessionChange(getTransactionSession().getAlias(), key, value);
 
         }
         return getCacheTransaction(Type.DEFAULT);
@@ -511,6 +511,6 @@ public class CacheTransaction extends AbstractCacheTransaction {
     }
 
     protected boolean validateOnTransactionSessionChangeListener() {
-        return null != getTransactionSession() && null != getTransactionSession().getOnTransactionSessionChangeListener();
+        return null != getOnTransactionSessionChangeListener();
     }
 }

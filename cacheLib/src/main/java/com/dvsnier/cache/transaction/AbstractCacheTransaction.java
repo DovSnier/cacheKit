@@ -7,6 +7,7 @@ import com.dvsnier.cache.base.ICacheGenre;
 import com.dvsnier.cache.base.ITransactionSession;
 import com.dvsnier.cache.config.ITransactionAlias;
 import com.dvsnier.cache.config.Type;
+import com.dvsnier.cache.infrastructure.Debug;
 
 import libcore.base.IDiskLruCache;
 import libcore.base.ILruCache;
@@ -17,12 +18,14 @@ import libcore.io.LruCache;
  * AbstractCacheTransaction
  * Created by dovsnier on 2019-07-12.
  */
-public abstract class AbstractCacheTransaction implements ICacheTransaction<CacheTransactionSession>, ITransactionSession<CacheTransactionSession>, ICacheGenre, ITransactionAlias {
+public abstract class AbstractCacheTransaction implements ICacheTransaction<CacheTransactionSession>, ICacheGenre, ITransactionAlias,
+        ITransactionSession<CacheTransactionSession>, ISetTransactionSessionChangeListener<OnTransactionSessionChangeListener> {
 
     protected Type type;
     protected ILruCache cache;
     protected IDiskLruCache diskCache;
     protected ICacheTransactionSession transactionSession;
+    protected OnTransactionSessionChangeListener onTransactionSessionChangeListener;
 
     public AbstractCacheTransaction() {
         transactionSession = new CacheTransactionSession() {
@@ -92,4 +95,15 @@ public abstract class AbstractCacheTransaction implements ICacheTransaction<Cach
         this.transactionSession = transactionSession;
     }
     //</editor-fold>
+
+    public OnTransactionSessionChangeListener getOnTransactionSessionChangeListener() {
+        return onTransactionSessionChangeListener;
+    }
+
+    @Override
+    public void setOnTransactionSessionChangeListener(OnTransactionSessionChangeListener onTransactionSessionChangeListener) {
+        this.onTransactionSessionChangeListener = onTransactionSessionChangeListener;
+        //noinspection ConstantConditions
+        Debug.d(String.format("the current cache engine(%s), an cache transaction session change listener has been set up.", getTransactionSession().getAlias()));
+    }
 }
