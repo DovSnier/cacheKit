@@ -20,7 +20,6 @@ public interface ICacheStorage {
      */
     File getDiskCacheDir(@NonNull Context context, @NonNull String uniqueName);
 
-
     /**
      * the get the cache root directory
      *
