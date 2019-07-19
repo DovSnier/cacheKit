@@ -10,6 +10,8 @@ android {
         targetSdkVersion rootProject.ext.target_sdk_version
         versionCode rootProject.ext.version_app_code
         versionName "${rootProject.ext.version_app_name}.${gitHashCode()}"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -36,4 +38,7 @@ dependencies {
     implementation project(':cacheLib')
 
     testImplementation "junit:junit:${rootProject.ext.junit_version}"
+    androidTestImplementation "com.android.support.test:runner:${rootProject.ext.runner_version}"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:${rootProject.ext.espresso_core_version}"
+    androidTestImplementation "com.google.truth:truth:${rootProject.ext.truth_version}"
 }
