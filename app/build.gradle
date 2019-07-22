@@ -8,8 +8,9 @@ android {
         applicationId "com.dvsnier.demo"
         minSdkVersion rootProject.ext.min_sdk_version
         targetSdkVersion rootProject.ext.target_sdk_version
-        versionCode 3
-        versionName "1.0.1"
+        versionCode rootProject.ext.version_app_code
+        versionName "${rootProject.ext.version_app_name}.${gitHashCode()}"
+
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -20,12 +21,24 @@ android {
     }
 }
 
+def gitHashCode() { return 'git rev-parse --short HEAD'.execute([], project.rootDir).text.trim() }
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestImplementation("com.android.support.test.espresso:espresso-core:${rootProject.ext.espresso_core_version}", {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
+
     implementation "com.android.support:support-annotations:${rootProject.ext.support_annotations_version}"
-    testImplementation "junit:junit:${rootProject.ext.junit_version}"
+
+    debugApi("com.dvsnier:crash:$rootProject.crash_monitor_version") {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
+    releaseApi("com.dvsnier:crash-no:$rootProject.crash_monitor_version") {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
+
     implementation project(':cacheLib')
+
+    testImplementation "junit:junit:${rootProject.ext.junit_version}"
+    androidTestImplementation "com.android.support.test:runner:${rootProject.ext.runner_version}"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:${rootProject.ext.espresso_core_version}"
+    androidTestImplementation "com.google.truth:truth:${rootProject.ext.truth_version}"
 }

@@ -15,8 +15,8 @@ android {
         versionCode rootProject.ext.version_code
         versionName rootProject.ext.version_name
         buildConfigField "String", "cache_sdk_version", "\"${rootProject.ext.version_name}\""
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -32,11 +32,12 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestImplementation("com.android.support.test.espresso:espresso-core:${rootProject.ext.espresso_core_version}", {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
+
     implementation "com.android.support:support-annotations:${rootProject.ext.support_annotations_version}"
     testImplementation "junit:junit:${rootProject.ext.junit_version}"
+    androidTestImplementation "com.android.support.test:runner:${rootProject.ext.runner_version}"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:${rootProject.ext.espresso_core_version}"
+    androidTestImplementation "com.google.truth:truth:${rootProject.ext.truth_version}"
 }
 
 task sourcesJar(type: Jar) {
@@ -68,7 +69,7 @@ publish {
     repoName = 'AndroidComponent'
     userOrg = 'dovsnier'
     groupId = 'com.dvsnier'
-    artifactId = 'cacheLib'
+    artifactId = 'cache'
     publishVersion = rootProject.ext.version_name
     desc = "the android cache lib that version is ${rootProject.ext.version_name}"
     website = siteUrl
