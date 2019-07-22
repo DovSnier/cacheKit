@@ -2,241 +2,494 @@ package com.dvsnier.cache;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
+import com.dvsnier.cache.annotation.Hide;
+import com.dvsnier.cache.annotation.Multiple;
+import com.dvsnier.cache.base.AbstractCacheManager;
+import com.dvsnier.cache.base.Closable;
+import com.dvsnier.cache.base.IGetInstantiate;
 import com.dvsnier.cache.config.CacheAllocation;
+import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.config.ICacheConfig;
+import com.dvsnier.cache.config.IType;
 import com.dvsnier.cache.config.OnCacheAllocationListener;
-import com.dvsnier.cache.transaction.ICacheTransaction;
+import com.dvsnier.cache.infrastructure.Debug;
+import com.dvsnier.cache.transaction.CacheTransactionSession;
+import com.dvsnier.cache.transaction.IGetCacheTransactionSession;
+import com.dvsnier.cache.transaction.OnCacheTransactionListener;
+import com.dvsnier.cache.transaction.OnTransactionSessionChangeListener;
+import com.dvsnier.cache.wrapper.CacheWrapper;
+import com.dvsnier.cache.wrapper.ICacheWrapper;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
+import java.util.Enumeration;
+import java.util.concurrent.ConcurrentHashMap;
+
+import libcore.base.IBaseCache;
 
 /**
+ * CacheManager
  * Created by dovsnier on 2016/9/26.
  */
-public class CacheManager implements ICache, ICacheTransaction {
+public class CacheManager extends AbstractCacheManager {
 
     protected static String TAG = "CacheManager";
-    private static CacheManager cacheManager;
     @SuppressLint("StaticFieldLeak")
-    private static Cache cache;
-    private OnCacheAllocationListener onCacheAllocationListener;
+    private static CacheManager INSTANCE = new CacheManager();
+    protected Context context;
+    //    @Multiple
+//    protected static final ConcurrentHashMap<String, IBaseCache> CACHE_POOL = new ConcurrentHashMap<>();
+    @Multiple
+    protected static ConcurrentHashMap<String, IBaseCache> CACHE_POOL;
+    /* the default cache instantiate */
+    protected static CacheWrapper cacheWrapper;
+    /* the default cache allocation listener */
+    protected OnCacheAllocationListener onCacheAllocationListener;
+
 
     private CacheManager() {
+        CACHE_POOL = new ConcurrentHashMap<>();
+        cacheWrapper = new CacheWrapper();
+        if (!CACHE_POOL.containsKey(IType.TYPE_DEFAULT)) {
+            CACHE_POOL.put(IType.TYPE_DEFAULT, cacheWrapper);
+        }
     }
 
     public static CacheManager getInstance() {
-        if (null == cacheManager) {
-            synchronized (CacheManager.class) {
-                if (null == cacheManager) {
-                    cacheManager = new CacheManager();
-                    cache = new Cache();
-                }
-            }
-        }
-        return cacheManager;
+        return INSTANCE;
     }
 
-    //<editor-fold desc="ICache">
+    //<editor-fold desc="ICacheEngine,IMultipleInstantiate">
 
     @Override
     public final void initialize(@NonNull Context context) {
-        if (null != cache) {
-            cache.initialize(context);
+        setContext(context);
+        if (null != getCacheWrapper()) {
+            getCacheWrapper().initialize(context);
+            //noinspection ConstantConditions
+            if (getCacheWrapper() instanceof IGetInstantiate) {
+                if (getCacheWrapper().getInstantiate() instanceof IAlias) {
+                    Debug.i(String.format("the default cache engine(%s) initialized.", ((IAlias) getCacheWrapper().getInstantiate()).getAlias()));
+                }
+            }
+        }
+    }
+
+    @Multiple
+    @Override
+    public void initialize(@NonNull String type, @NonNull Context context) {
+        //noinspection ConstantConditions
+        if (null == context) {
+            Debug.e(String.format("the context object instance(of %s) cannot be null.", type));
+            //noinspection ThrowableNotThrown
+            new IllegalAccessException("the context object instance cannot be null.");
+        }
+        if (!TextUtils.isEmpty(type)) {
+            if (getCachePool().containsKey(type.trim())) {
+                IBaseCache cache = getCachePool().get(type);
+                if (cache instanceof ICacheWrapper) {
+                    ((ICacheWrapper) cache).initialize(context);
+                    Debug.d(String.format("the %s cache engine initialized.", type));
+                }
+            } else {
+                Debug.w(String.format("no %s cache engine was found from the cache pool and then rebuilt to build a %s cache engine.", type, type));
+                ICacheWrapper cache = new CacheWrapper(type);
+                getCachePool().put(type.trim(), cache);
+                cache.initialize(context);
+                Debug.d(String.format("the reconstruct build %s cache engine initialized.", type));
+            }
         }
     }
 
     @Override
     public void initialize(@NonNull ICacheConfig cacheConfig) {
-        if (null != cache) {
-            //noinspection ConstantConditions
-            if (null != cacheConfig) {
+        //noinspection ConstantConditions
+        if (null != cacheConfig) {
+            setContext(cacheConfig.getContext());
+            if (null != getCacheWrapper()) {
+                getCacheWrapper().initialize(cacheConfig);
+                //noinspection ConstantConditions
+                if (getCacheWrapper() instanceof IGetInstantiate) {
+                    if (getCacheWrapper().getInstantiate() instanceof IAlias) {
+                        Debug.i(String.format("the default cache engine(%s) initialized.", ((IAlias) getCacheWrapper().getInstantiate()).getAlias()));
+                    }
+                }
+            }
+        }
+    }
+
+    @Multiple
+    @Override
+    public void initialize(@NonNull String type, @NonNull ICacheConfig cacheConfig) {
+        //noinspection ConstantConditions
+        if (null == cacheConfig) {
+            Debug.e(String.format("the cacheConfig object instance(of %s) cannot be null.", type));
+            //noinspection ThrowableNotThrown
+            new IllegalAccessException("the cacheConfig object instance cannot be null.");
+        }
+        if (!TextUtils.isEmpty(type)) {
+            if (getCachePool().containsKey(type.trim())) {
+                IBaseCache cache = getCachePool().get(type);
+                if (cache instanceof ICacheWrapper) {
+                    ((ICacheWrapper) cache).initialize(cacheConfig);
+                    Debug.d(String.format("the %s cache engine initialized.", type));
+                }
+            } else {
+                Debug.w(String.format("no %s cache engine was found from the cache pool and then rebuilt to build a %s cache engine.", type, type));
+                ICacheWrapper cache = new CacheWrapper(type);
+                getCachePool().put(type.trim(), cache);
                 cache.initialize(cacheConfig);
+                Debug.d(String.format("the reconstruct build %s cache engine initialized.", type));
             }
         }
     }
 
     @Override
     public final void close() {
-        if (null != cache) {
-            cache.close();
+        if (null != getCacheWrapper()) {
+            getCacheWrapper().close();
+            Debug.i(String.format("the default cache engine(%s) that has been shut down.", IType.TYPE_DEFAULT));
+        }
+        if (null != cacheWrapper) {
+            cacheWrapper = null;
+        }
+        if (null != onCacheAllocationListener) {
+            onCacheAllocationListener = null;
         }
     }
 
     //</editor-fold>
-    //<editor-fold desc="ICacheTransaction">
+    //<editor-fold desc="ICacheTransaction,ICacheMultipleTransaction">
 
     @Override
     public Object get(@NonNull String key) {
-        return cache.getCacheTransaction().get(key);
+        return getCacheWrapper().getTransaction().get(key);
+    }
+
+    @Multiple
+    @Override
+    public Object get(@NonNull String type, @NonNull String key) {
+        if (!TextUtils.isEmpty(type)) {
+            if (getCachePool().containsKey(type.trim())) {
+                IBaseCache cache = getCachePool().get(type);
+                if (cache instanceof IGetCacheTransactionSession) {
+                    //noinspection unchecked
+                    return ((IGetCacheTransactionSession<CacheTransactionSession>) cache).getTransaction().get(key);
+                }
+            }
+        }
+        return null;
     }
 
     @Override
     public String getString(@NonNull String key) {
-        return cache.getCacheTransaction().getString(key);
+        return getCacheWrapper().getTransaction().getString(key);
+    }
+
+    @Multiple
+    @Override
+    public String getString(@NonNull String type, @NonNull String key) {
+        if (!TextUtils.isEmpty(type)) {
+            if (getCachePool().containsKey(type.trim())) {
+                IBaseCache cache = getCachePool().get(type);
+                if (cache instanceof IGetCacheTransactionSession) {
+                    //noinspection unchecked
+                    return ((IGetCacheTransactionSession<CacheTransactionSession>) cache).getTransaction().getString(key);
+                }
+            }
+        }
+        return null;
     }
 
     @Override
     public InputStream getInputStream(@NonNull String key) {
-        return cache.getCacheTransaction().getInputStream(key);
+        return getCacheWrapper().getTransaction().getInputStream(key);
+    }
+
+    @Multiple
+    @Override
+    public InputStream getInputStream(@NonNull String type, @NonNull String key) {
+        if (!TextUtils.isEmpty(type)) {
+            if (getCachePool().containsKey(type.trim())) {
+                IBaseCache cache = getCachePool().get(type);
+                if (cache instanceof IGetCacheTransactionSession) {
+                    //noinspection unchecked
+                    return ((IGetCacheTransactionSession<CacheTransactionSession>) cache).getTransaction().getInputStream(key);
+                }
+            }
+        }
+        return null;
     }
 
     @Override
     public Object getObject(@NonNull String key) {
-        return cache.getCacheTransaction().getObject(key);
+        return getCacheWrapper().getTransaction().getObject(key);
+    }
+
+    @Multiple
+    @Override
+    public Object getObject(@NonNull String type, @NonNull String key) {
+        if (!TextUtils.isEmpty(type)) {
+            if (getCachePool().containsKey(type.trim())) {
+                IBaseCache cache = getCachePool().get(type);
+                if (cache instanceof IGetCacheTransactionSession) {
+                    //noinspection unchecked
+                    return ((IGetCacheTransactionSession<CacheTransactionSession>) cache).getTransaction().getObject(key);
+                }
+            }
+        }
+        return null;
     }
 
     @Override
-    public ICacheTransaction put(@NonNull String key, Object value) {
-        return cache.getCacheTransaction().put(key, value);
+    public CacheTransactionSession put(@NonNull String key, Object value) {
+        return getCacheWrapper().getTransaction().put(key, value);
+    }
+
+    @Multiple
+    @Override
+    public CacheTransactionSession put(@NonNull String type, @NonNull String key, Object value) {
+        if (!TextUtils.isEmpty(type)) {
+            if (getCachePool().containsKey(type.trim())) {
+                IBaseCache cache = getCachePool().get(type);
+                if (cache instanceof IGetCacheTransactionSession) {
+                    //noinspection unchecked
+                    return ((IGetCacheTransactionSession<CacheTransactionSession>) cache).getTransaction().put(key, value);
+                }
+            }
+        }
+        return null;
     }
 
     @Override
-    public ICacheTransaction putString(@NonNull String key, String value) {
-        return cache.getCacheTransaction().putString(key, value);
+    public CacheTransactionSession putString(@NonNull String key, String value) {
+        return getCacheWrapper().getTransaction().putString(key, value);
+    }
+
+    @Multiple
+    @Override
+    public CacheTransactionSession putString(@NonNull String type, @NonNull String key, String value) {
+        if (!TextUtils.isEmpty(type)) {
+            if (getCachePool().containsKey(type.trim())) {
+                IBaseCache cache = getCachePool().get(type);
+                if (cache instanceof IGetCacheTransactionSession) {
+                    //noinspection unchecked
+                    return ((IGetCacheTransactionSession<CacheTransactionSession>) cache).getTransaction().putString(key, value);
+                }
+            }
+        }
+        return null;
     }
 
     @Override
-    public ICacheTransaction putInputStream(@NonNull String key, InputStream inputStream) {
-        return cache.getCacheTransaction().putInputStream(key, inputStream);
+    public CacheTransactionSession putInputStream(@NonNull String key, InputStream inputStream) {
+        return getCacheWrapper().getTransaction().putInputStream(key, inputStream);
+    }
+
+    @Multiple
+    @Override
+    public CacheTransactionSession putInputStream(@NonNull String type, @NonNull String key, InputStream inputStream) {
+        if (!TextUtils.isEmpty(type)) {
+            if (getCachePool().containsKey(type.trim())) {
+                IBaseCache cache = getCachePool().get(type);
+                if (cache instanceof IGetCacheTransactionSession) {
+                    //noinspection unchecked
+                    return ((IGetCacheTransactionSession<CacheTransactionSession>) cache).getTransaction().putInputStream(key, inputStream);
+                }
+            }
+        }
+        return null;
     }
 
     @Override
-    public ICacheTransaction putObject(@NonNull String key, Object value) {
-        return cache.getCacheTransaction().putObject(key, value);
+    public CacheTransactionSession putObject(@NonNull String key, Object value) {
+        return getCacheWrapper().getTransaction().putObject(key, value);
+    }
+
+    @Multiple
+    @Override
+    public CacheTransactionSession putObject(@NonNull String type, @NonNull String key, Object value) {
+        if (!TextUtils.isEmpty(type)) {
+            if (getCachePool().containsKey(type.trim())) {
+                IBaseCache cache = getCachePool().get(type);
+                if (cache instanceof IGetCacheTransactionSession) {
+                    //noinspection unchecked
+                    return ((IGetCacheTransactionSession<CacheTransactionSession>) cache).getTransaction().putObject(key, value);
+                }
+            }
+        }
+        return null;
     }
 
     @Override
-    public ICacheTransaction remove(@NonNull String key) {
-        return cache.getCacheTransaction().remove(key);
+    public CacheTransactionSession remove(@NonNull String key) {
+        return getCacheWrapper().getTransaction().remove(key);
+    }
+
+    @Multiple
+    @Override
+    public CacheTransactionSession remove(@NonNull String type, @NonNull String key) {
+        if (!TextUtils.isEmpty(type)) {
+            if (getCachePool().containsKey(type.trim())) {
+                IBaseCache cache = getCachePool().get(type);
+                if (cache instanceof IGetCacheTransactionSession) {
+                    //noinspection unchecked
+                    return ((IGetCacheTransactionSession<CacheTransactionSession>) cache).getTransaction().remove(key);
+                }
+            }
+        }
+        return null;
     }
 
     @Override
     public boolean commit() {
-        return cache.getCacheTransaction().commit();
+        return getCacheWrapper().getTransaction().commit();
+    }
+
+    @Multiple
+    @Override
+    public boolean commit(@NonNull String type) {
+        if (!TextUtils.isEmpty(type)) {
+            if (getCachePool().containsKey(type.trim())) {
+                IBaseCache cache = getCachePool().get(type);
+                if (cache instanceof IGetCacheTransactionSession) {
+                    //noinspection unchecked
+                    return ((IGetCacheTransactionSession<CacheTransactionSession>) cache).getTransaction().commit();
+                }
+            }
+        }
+        return false;
+    }
+
+    //</editor-fold>
+    //<editor-fold desc="ICachePool">
+
+
+    @Override
+    public IBaseCache getDefaultCache() {
+        return getCacheWrapper();
+    }
+
+    @Override
+    public IBaseCache getCache(String type) {
+        if (!TextUtils.isEmpty(type)) {
+            if (getCachePool().containsKey(type.trim())) {
+                return getCachePool().get(type.trim());
+            } else {
+                Debug.w(String.format("no %s cache engine was found from the cache pool and then rebuilt to build a %s cache engine", type, type));
+                ICacheWrapper value = new CacheWrapper(type);
+                getCachePool().put(type.trim(), value);
+                value.initialize(context);
+                Debug.d(String.format("the reconstruct build %s cache engine initialized", type));
+                return value;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public ConcurrentHashMap<String, IBaseCache> getCachePool() {
+        return CACHE_POOL;
+    }
+
+    //</editor-fold>
+    //<editor-fold desc="IDestroyer">
+
+    @Override
+    public void onDestroy() {
+        Enumeration<IBaseCache> elements = getCachePool().elements();
+        while (elements.hasMoreElements()) {
+            IBaseCache element = elements.nextElement();
+            //noinspection ConditionCoveredByFurtherCondition
+            if (null != element && element instanceof Closable) {
+                String alias = "";
+                if (element instanceof IGetInstantiate) {
+                    if (((IGetInstantiate) element).getInstantiate() instanceof IAlias) {
+                        alias = ((IAlias) ((IGetInstantiate) element).getInstantiate()).getAlias();
+                    }
+                }
+                ((Closable) element).close();
+                Debug.d(String.format("the %s cache engine that has been shut down.", alias));
+            }
+        }
+        getCachePool().clear();
+        Debug.i("the cache engine pool has been clear.");
     }
 
     //</editor-fold>
 
+    @Hide
+    protected CacheWrapper getCacheWrapper() {
+        return cacheWrapper;
+    }
+
+    @Hide
+    protected void setCacheWrapper(CacheWrapper cacheWrapper) {
+        this.cacheWrapper = cacheWrapper;
+    }
 
     private OnCacheAllocationListener getOnCacheAllocationListener() {
         return onCacheAllocationListener;
     }
 
+    /**
+     * the default cache allocation listener
+     *
+     * @param onCacheAllocationListener {@link OnCacheAllocationListener}
+     */
+    @Hide
     public final void setOnCacheAllocationListener(OnCacheAllocationListener onCacheAllocationListener) {
         this.onCacheAllocationListener = onCacheAllocationListener;
         CacheAllocation.INSTANCE().setOnCacheAllocationListener(getOnCacheAllocationListener());
     }
 
     /**
-     * the cache clean manager
+     * the setting up cached session listening
+     *
+     * @param type                       {@link IType}
+     * @param onCacheTransactionListener {@link OnCacheTransactionListener}
+     * @deprecated
      */
-    public static class CacheCleanManager {
-
-        /**
-         * the current cache size
-         *
-         * @param context {@link Context}
-         * @return the total cache size
-         * @throws Exception
-         */
-        public static String getTotalCacheSize(Context context) throws Exception {
-            long cacheSize = getFolderSize(context.getCacheDir());
-            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                cacheSize += getFolderSize(context.getExternalCacheDir());
+    @Hide
+    public void setOnCacheTransactionListener(@NonNull String type, OnCacheTransactionListener onCacheTransactionListener) {
+        if (TextUtils.isEmpty(type)) {
+            if (getDefaultCache() instanceof CacheWrapper) {
+                ((CacheWrapper) getDefaultCache()).setOnCacheTransactionListener(onCacheTransactionListener);
             }
-            return getFormatSize(cacheSize);
-        }
-
-        /**
-         * the delete the cache directory
-         *
-         * @param context {@link Context}
-         */
-        public static void clearAllCache(Context context) {
-            if (null != cache && null != cache.getCache()) cache.getCache().evictAll();
-            if (null != cache && null != cache.getDiskCache()) {
-                try {
-                    cache.getDiskCache().delete();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            deleteDir(context.getCacheDir());
-            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                deleteDir(context.getExternalCacheDir());
+        } else {
+            IBaseCache cache = getCache(type);
+            if (cache instanceof CacheWrapper) {
+                ((CacheWrapper) cache).setOnCacheTransactionListener(onCacheTransactionListener);
             }
         }
+    }
 
-        /**
-         * to get folder size
-         *
-         * @param file the current file or directory
-         * @return the file or directory size
-         * @throws Exception
-         */
-        public static long getFolderSize(File file) throws Exception {
-            long size = 0;
-            try {
-                File[] listFiles = file.listFiles();
-                for (int i = 0; i < listFiles.length; i++) {
-                    if (listFiles[i].isDirectory()) {
-                        size = size + getFolderSize(listFiles[i]);
-                    } else {
-                        size = size + listFiles[i].length();
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+    /**
+     * the setting up cached session listening
+     *
+     * @param type                               {@link IType}
+     * @param onTransactionSessionChangeListener {@link OnTransactionSessionChangeListener}
+     */
+    public void setOnTransactionSessionChangeListener(@NonNull String type, OnTransactionSessionChangeListener onTransactionSessionChangeListener) {
+        if (TextUtils.isEmpty(type)) {
+            if (getDefaultCache() instanceof CacheWrapper) {
+                ((CacheWrapper) getDefaultCache()).setOnTransactionSessionChangeListener(onTransactionSessionChangeListener);
             }
-            return size;
+        } else {
+            IBaseCache cache = getCache(type);
+            if (cache instanceof CacheWrapper) {
+                ((CacheWrapper) cache).setOnTransactionSessionChangeListener(onTransactionSessionChangeListener);
+            }
         }
+    }
 
-        /**
-         * the format unit with folder size
-         *
-         * @param size folder size
-         * @return the format unit with folder size
-         */
-        public static String getFormatSize(double size) {
-            double kiloByte = size / 1024;
-            if (kiloByte < 1) {
-                return size + "K";
-            }
-            double megaByte = kiloByte / 1024;
-            if (megaByte < 1) {
-                BigDecimal resultKilo = new BigDecimal(Double.toString(kiloByte));
-                return resultKilo.setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString() + "K";
-            }
-            double gigaByte = megaByte / 1024;
-            if (gigaByte < 1) {
-                BigDecimal resultMega = new BigDecimal(Double.toString(megaByte));
-                return resultMega.setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString() + "M";
-            }
-            double teraBytes = gigaByte / 1024;
-            if (teraBytes < 1) {
-                BigDecimal resultGiga = new BigDecimal(Double.toString(gigaByte));
-                return resultGiga.setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString() + "G";
-            }
-            BigDecimal resultTera = new BigDecimal(teraBytes);
-            return resultTera.setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString() + "T";
-        }
+    public Context getContext() {
+        return context;
+    }
 
-        private static boolean deleteDir(File file) {
-            if (file != null && file.isDirectory()) {
-                String[] children = file.list();
-                for (int i = 0; i < children.length; i++) {
-                    boolean success = deleteDir(new File(file, children[i]));
-                    if (!success) {
-                        return false;
-                    }
-                }
-            }
-            return file.delete();
-        }
+    public void setContext(Context context) {
+        this.context = context;
     }
 }

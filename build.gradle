@@ -3,9 +3,10 @@ apply from: 'dependencies.gradle'
 
 buildscript {
     repositories {
-        jcenter()
+        mavenLocal()
         mavenCentral()
         google()
+        jcenter()
     }
     dependencies {
         classpath "com.android.tools.build:gradle:${build_gradle_version}"
@@ -18,14 +19,21 @@ buildscript {
 
 allprojects {
     repositories {
-        jcenter()
+        mavenLocal()
         mavenCentral()
         google()
+        jcenter()
     }
 
     tasks.withType(Javadoc) {
         options.addStringOption('Xdoclint:none', '-quiet')
         options.addStringOption('encoding', 'UTF-8')
+    }
+
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
     }
 }
 

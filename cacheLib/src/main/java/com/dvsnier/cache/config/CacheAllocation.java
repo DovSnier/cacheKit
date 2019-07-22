@@ -5,7 +5,7 @@ import com.dvsnier.cache.exception.CacheAllocationException;
 /**
  * Created by dovsnier on 2018/6/12.
  */
-public class CacheAllocation {
+public class CacheAllocation implements IAllocation {
 
     private static CacheAllocation INSTANCE = new CacheAllocation();
     protected boolean API_INNER;

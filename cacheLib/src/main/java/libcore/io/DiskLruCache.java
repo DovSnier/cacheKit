@@ -47,6 +47,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import libcore.base.IDiskLruCache;
+
 /**
  * *****************************************************************************
  * Taken from the JB source code, can be found in:
@@ -97,7 +99,7 @@ import java.util.concurrent.TimeUnit;
  * Callers should handle other problems by catching {@code IOException} and
  * responding appropriately.
  */
-public final class DiskLruCache implements Closeable {
+public final class DiskLruCache implements IDiskLruCache {
 
     static final String JOURNAL_FILE = "journal";
     static final String JOURNAL_FILE_TMP = "journal.tmp";
@@ -680,6 +682,20 @@ public final class DiskLruCache implements Closeable {
 //            Map.Entry<String, Entry> toEvict = lruEntries.eldest();
             final Map.Entry<String, Entry> toEvict = lruEntries.entrySet().iterator().next();
             remove(toEvict.getKey());
+        }
+    }
+
+    /**
+     * Closes the cache and deletes all of its stored values. This will delete
+     * all files in the cache directory including files that weren't created by
+     * the cache.
+     */
+    @Override
+    public void evictAll() {
+        try {
+            delete();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
