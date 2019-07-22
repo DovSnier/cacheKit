@@ -1,7 +1,7 @@
 ext {
 
     //编译环境
-    build_gradle_version = '3.3.2'
+    build_gradle_version = '3.4.2'
     compile_sdk_version = 28
     build_tools_version = '28.0.3'
 
