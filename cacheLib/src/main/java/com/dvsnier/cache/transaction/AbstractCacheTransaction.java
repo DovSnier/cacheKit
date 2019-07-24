@@ -18,8 +18,10 @@ import libcore.io.LruCache;
  * AbstractCacheTransaction
  * Created by dovsnier on 2019-07-12.
  */
-public abstract class AbstractCacheTransaction implements ICacheTransaction<CacheTransactionSession>, ICacheGenre, ITransactionAlias,
-        ITransactionSession<CacheTransactionSession>, ISetTransactionSessionChangeListener<OnTransactionSessionChangeListener> {
+public abstract class AbstractCacheTransaction implements ICacheGenre, ITransactionAlias,
+        ICacheTransaction<CacheTransactionSession>, ICacheScheduledTransaction<CacheTransactionSession>,
+        ITransactionSession<CacheTransactionSession>,
+        ISetTransactionSessionChangeListener<OnTransactionSessionChangeListener> {
 
     protected Type type;
     protected ILruCache cache;
@@ -30,12 +32,12 @@ public abstract class AbstractCacheTransaction implements ICacheTransaction<Cach
     public AbstractCacheTransaction() {
         transactionSession = new CacheTransactionSession() {
         };
-        ((CacheTransactionSession) transactionSession).setCacheTransactionListener(this);
+        ((CacheTransactionSession) transactionSession).setTransactionListener(this);
     }
 
     public AbstractCacheTransaction(ICacheTransactionSession transactionSession) {
         this.transactionSession = transactionSession;
-        ((CacheTransactionSession) transactionSession).setCacheTransactionListener(this);
+        ((CacheTransactionSession) transactionSession).setTransactionListener(this);
     }
 
     public AbstractCacheTransaction(ILruCache cache, IDiskLruCache diskCache) {
@@ -43,7 +45,7 @@ public abstract class AbstractCacheTransaction implements ICacheTransaction<Cach
         this.diskCache = diskCache;
         transactionSession = new CacheTransactionSession() {
         };
-        ((CacheTransactionSession) transactionSession).setCacheTransactionListener(this);
+        ((CacheTransactionSession) transactionSession).setTransactionListener(this);
     }
 
     //<editor-fold desc="ITransactionAlias">

@@ -2,8 +2,11 @@ package com.dvsnier.cache.transaction;
 
 import android.support.annotation.NonNull;
 
+import com.dvsnier.cache.annotation.Scheduled;
+import com.dvsnier.cache.base.TimeUnit;
 import com.dvsnier.cache.config.CacheAllocation;
 import com.dvsnier.cache.config.Type;
+import com.dvsnier.cache.exception.UnimplementedException;
 import com.dvsnier.cache.infrastructure.Debug;
 
 import java.io.BufferedInputStream;
@@ -61,6 +64,13 @@ public class CacheTransaction extends AbstractCacheTransaction {
             Debug.d(String.format("the current cache engine(%s), that key(%s), then value(%s) does not implement Serializable.", getTransactionSession().getAlias(), key, value));
         }
         return getCacheTransaction(Type.DEFAULT);
+    }
+
+    @Scheduled
+    @Override
+    public CacheTransactionSession put(@NonNull String key, Object value, long duration, TimeUnit timeUnit) {
+        throw new UnimplementedException();
+//        return getCacheTransaction(Type.DEFAULT);
     }
 
     @Override
@@ -127,6 +137,12 @@ public class CacheTransaction extends AbstractCacheTransaction {
 
         }
         return getCacheTransaction(Type.DEFAULT);
+    }
+
+    @Override
+    public CacheTransactionSession putString(@NonNull String key, String value, long duration, TimeUnit timeUnit) {
+        throw new UnimplementedException();
+//        return getCacheTransaction(Type.DEFAULT);
     }
 
     @Override
@@ -199,6 +215,12 @@ public class CacheTransaction extends AbstractCacheTransaction {
     }
 
     @Override
+    public CacheTransactionSession putInputStream(@NonNull String key, InputStream inputStream, long duration, TimeUnit timeUnit) {
+        throw new UnimplementedException();
+//        return getCacheTransaction(Type.DEFAULT);
+    }
+
+    @Override
     public CacheTransactionSession putObject(@NonNull String key, Object value) {
         if (validateKey(key)) {
             //noinspection ConstantConditions
@@ -267,6 +289,12 @@ public class CacheTransaction extends AbstractCacheTransaction {
 
         }
         return getCacheTransaction(Type.DEFAULT);
+    }
+
+    @Override
+    public CacheTransactionSession putObject(@NonNull String key, Object value, long duration, TimeUnit timeUnit) {
+        throw new UnimplementedException();
+//        return getCacheTransaction(Type.DEFAULT);
     }
 
     @Override

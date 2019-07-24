@@ -2,6 +2,7 @@ package com.dvsnier.cache.base;
 
 import android.content.Context;
 
+import com.dvsnier.cache.annotation.Regulation;
 import com.dvsnier.cache.transaction.ICacheTransaction;
 
 import libcore.base.IDiskLruCache;
@@ -51,4 +52,21 @@ public class CacheSession extends AbstractCacheSession {
     }
 
     //</editor-fold>
+
+    @Regulation
+    public void associationCachingEngine(IEngineInstrument engineInstrument) {
+        if (null == engineInstrument) {
+            throw new IllegalArgumentException("the engine instrument object instance cannot be null");
+        }
+
+        if (engineInstrument instanceof CacheEngineInstrument) {
+            //noinspection unchecked
+            setCache(((CacheEngineInstrument) engineInstrument).getLruCache());
+        }
+        if (engineInstrument instanceof CacheEngineInstrument) {
+            setDiskCache(((CacheEngineInstrument) engineInstrument).getDiskLruCache());
+        }
+
+        setOrScheduledCacheTransaction();
+    }
 }

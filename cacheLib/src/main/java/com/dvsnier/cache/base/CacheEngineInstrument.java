@@ -1,0 +1,132 @@
+package com.dvsnier.cache.base;
+
+import android.content.Context;
+import android.support.annotation.NonNull;
+
+import com.dvsnier.cache.config.IAlias;
+import com.dvsnier.cache.config.ICacheConfig;
+
+import libcore.base.IDiskLruCache;
+import libcore.base.ILruCache;
+
+/**
+ * CacheEngineInstrument
+ * Created by dovsnier on 2019-07-24.
+ */
+public class CacheEngineInstrument implements IEngineInstrument, IGetInstantiate {
+
+    protected ICacheEngine instantiate;
+    protected OnEngineInstrumentStatusListener onEngineInstrumentStatusListener;
+
+    public CacheEngineInstrument() {
+        if (null == instantiate) {
+            instantiate = new Instantiate();
+        }
+    }
+
+    public CacheEngineInstrument(String alias) {
+        if (null == instantiate) {
+            instantiate = new Instantiate(alias);
+        }
+    }
+
+    //<editor-fold desc="Closable">
+
+    @Override
+    public void close() {
+        if (null != getInstantiate()) {
+            getInstantiate().close();
+        }
+        if (null != instantiate) {
+            instantiate = null;
+        }
+
+        if (null != getOnEngineInstrumentStatusListener()) {
+            getOnEngineInstrumentStatusListener().onClose();
+        }
+    }
+
+    //</editor-fold>
+    //<editor-fold desc="IInstantiate">
+
+    @Override
+    public void initialize(@NonNull Context context) {
+        //noinspection ConstantConditions
+        if (null == context) {
+            throw new IllegalArgumentException("the Context object that can't be null.");
+        }
+        if (null != getInstantiate()) {
+            getInstantiate().initialize(context);
+            if (null != getOnEngineInstrumentStatusListener()) {
+                getOnEngineInstrumentStatusListener().onInitialize(new ICacheConfig.Builder(context).create());
+            }
+        }
+    }
+
+    @Override
+    public void initialize(@NonNull ICacheConfig cacheConfig) {
+        //noinspection ConstantConditions
+        if (null == cacheConfig) {
+            throw new IllegalArgumentException("the ICacheConfig object that can't be null.");
+        }
+        if (null == cacheConfig.getContext()) {
+            throw new IllegalArgumentException("the Context object that can't be null.");
+        }
+        if (null != getInstantiate()) {
+            getInstantiate().initialize(cacheConfig);
+            if (null != getOnEngineInstrumentStatusListener()) {
+                getOnEngineInstrumentStatusListener().onInitialize(cacheConfig);
+            }
+        }
+    }
+
+    //</editor-fold>
+
+
+    @Override
+    public String getAlias() {
+        if (getInstantiate() instanceof IAlias) {
+            return ((IAlias) getInstantiate()).getAlias();
+        }
+        return null;
+    }
+
+    @Override
+    public void setAlias(String alias) {
+        if (getInstantiate() instanceof IAlias) {
+            ((IAlias) getInstantiate()).setAlias(alias);
+        }
+    }
+
+    @Override
+    public ICacheEngine getInstantiate() {
+        return instantiate;
+    }
+
+    public void setInstantiate(ICacheEngine instantiate) {
+        this.instantiate = instantiate;
+    }
+
+    public OnEngineInstrumentStatusListener getOnEngineInstrumentStatusListener() {
+        return onEngineInstrumentStatusListener;
+    }
+
+    public void setOnEngineInstrumentStatusListener(OnEngineInstrumentStatusListener onEngineInstrumentStatusListener) {
+        this.onEngineInstrumentStatusListener = onEngineInstrumentStatusListener;
+    }
+
+    public ILruCache getLruCache() {
+        if (getInstantiate() instanceof Instantiate) {
+            return ((Instantiate) getInstantiate()).getLruCache();
+        }
+        return null;
+    }
+
+
+    public IDiskLruCache getDiskLruCache() {
+        if (getInstantiate() instanceof Instantiate) {
+            return ((Instantiate) getInstantiate()).getDiskLruCache();
+        }
+        return null;
+    }
+}
