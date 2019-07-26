@@ -7,6 +7,8 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.dvsnier.cache.annotation.Multiple;
 import com.dvsnier.cache.annotation.PreCondition;
+import com.dvsnier.cache.annotation.Scheduled;
+import com.dvsnier.cache.base.TimeUnit;
 import com.dvsnier.cache.config.ICacheConfig;
 import com.dvsnier.cache.config.IType;
 import com.dvsnier.cache.infrastructure.AbstractStorage;
@@ -49,7 +51,7 @@ public class CacheManagerInstrumentedTest {
 
     @Test
     public void initialize() {
-//        pre_conditions_1();
+        pre_conditions_1();
         pre_conditions_2();
         pre_conditions_3();
     }
@@ -126,6 +128,12 @@ public class CacheManagerInstrumentedTest {
         assertThat(o).isInstanceOf(Long.class);
     }
 
+    @Scheduled
+    @Test
+    public void put_of_scheduled() {
+        instance().put(KEY_1, System.currentTimeMillis(), 1, TimeUnit.MINUTES);
+    }
+
     @Test
     public void putString() {
         instance().putString(KEY_2, String.valueOf(System.currentTimeMillis()));
@@ -152,6 +160,12 @@ public class CacheManagerInstrumentedTest {
         Object o = instance().getString(obtainMultipleType(), KEY_2);
         assertThat(o).isNotNull();
         assertThat(o).isInstanceOf(String.class);
+    }
+
+    @Scheduled
+    @Test
+    public void putString_of_scheduled() {
+        instance().putString(KEY_2, String.valueOf(System.currentTimeMillis()), 1, TimeUnit.MINUTES);
     }
 
     @Test
@@ -184,6 +198,13 @@ public class CacheManagerInstrumentedTest {
         assertThat(o).isInstanceOf(Long.class);
     }
 
+    @Scheduled
+    @Test
+    public void putObject_of_scheduled() {
+        //noinspection UnnecessaryBoxing
+        instance().putObject(KEY_3, Long.valueOf(System.currentTimeMillis()), 1, TimeUnit.MINUTES);
+    }
+
     @Test
     public void putInputStream() {
         // nothing to do
@@ -203,6 +224,12 @@ public class CacheManagerInstrumentedTest {
     @Multiple
     @Test
     public void getInputStream_of_multiple() {
+        // nothing to do
+    }
+
+    @Scheduled
+    @Test
+    public void putInputStream_of_scheduled() {
         // nothing to do
     }
 

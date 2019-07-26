@@ -1,8 +1,11 @@
 package com.dvsnier.cache.base;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
+import com.dvsnier.cache.BuildConfig;
 import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.config.ICacheConfig;
 
@@ -55,6 +58,7 @@ public class CacheEngineInstrument implements IEngineInstrument, IGetInstantiate
         if (null == context) {
             throw new IllegalArgumentException("the Context object that can't be null.");
         }
+        onSdkCallback(context);
         if (null != getInstantiate()) {
             getInstantiate().initialize(context);
             if (null != getOnEngineInstrumentStatusListener()) {
@@ -72,6 +76,7 @@ public class CacheEngineInstrument implements IEngineInstrument, IGetInstantiate
         if (null == cacheConfig.getContext()) {
             throw new IllegalArgumentException("the Context object that can't be null.");
         }
+        onSdkCallback(cacheConfig.getContext());
         if (null != getInstantiate()) {
             getInstantiate().initialize(cacheConfig);
             if (null != getOnEngineInstrumentStatusListener()) {
@@ -81,7 +86,22 @@ public class CacheEngineInstrument implements IEngineInstrument, IGetInstantiate
     }
 
     //</editor-fold>
+    //<editor-fold desc="ICacheAPI">
 
+    @SuppressLint("ApplySharedPref")
+    @Override
+    public void onSdkCallback(@NonNull Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(SDK_FILE_NAME, Context.MODE_PRIVATE);
+        if (null != sharedPreferences) {
+            SharedPreferences.Editor edit = sharedPreferences.edit();
+            if (null != edit) {
+                edit.putString(SDK_VERSION_KEY, BuildConfig.cache_sdk_version);
+                edit.commit();
+            }
+        }
+    }
+
+    //</editor-fold>
 
     @Override
     public String getAlias() {
@@ -121,7 +141,6 @@ public class CacheEngineInstrument implements IEngineInstrument, IGetInstantiate
         }
         return null;
     }
-
 
     public IDiskLruCache getDiskLruCache() {
         if (getInstantiate() instanceof Instantiate) {

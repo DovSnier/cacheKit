@@ -1,18 +1,14 @@
 package com.dvsnier.cache.base;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.dvsnier.cache.BuildConfig;
 import com.dvsnier.cache.R;
 import com.dvsnier.cache.annotation.Hide;
 import com.dvsnier.cache.annotation.Improvement;
 import com.dvsnier.cache.annotation.Multiple;
 import com.dvsnier.cache.config.IAlias;
-import com.dvsnier.cache.config.ICacheAPI;
 import com.dvsnier.cache.config.ICacheConfig;
 import com.dvsnier.cache.config.ICacheEngineConfig;
 import com.dvsnier.cache.config.IType;
@@ -33,7 +29,7 @@ import libcore.io.LruCache;
  * Instantiate
  * Created by dovsnier on 2019-07-09.
  */
-public class Instantiate implements ICacheEngine, ICacheEngineConfig, IAlias, Evictable, ICacheAPI {
+public class Instantiate implements ICacheEngine, ICacheEngineConfig, IAlias, Evictable {
 
     protected Context context;
     protected String alias;
@@ -79,7 +75,6 @@ public class Instantiate implements ICacheEngine, ICacheEngineConfig, IAlias, Ev
                 e.printStackTrace();
                 Debug.e(String.format("the current cache engine(%s) is failure(%s) in disk cache initialization", getAlias(), e.getMessage()));
             }
-            onSdkCallback(context);
             setInstantiate(true);
         }
     }
@@ -127,7 +122,6 @@ public class Instantiate implements ICacheEngine, ICacheEngineConfig, IAlias, Ev
                 Debug.e(String.format("the current cache engine(%s) is failure(%s) in disk cache initialization", getAlias(), e.getMessage()));
                 e.printStackTrace();
             }
-            onSdkCallback(cacheConfig.getContext());
             setInstantiate(true);
         }
     }
@@ -188,23 +182,6 @@ public class Instantiate implements ICacheEngine, ICacheEngineConfig, IAlias, Ev
         }
         Debug.i(String.format("the current cache engine(%s) is evicted.", getAlias()));
     }
-
-    //<editor-fold desc="ICacheAPI">
-
-    @SuppressLint("ApplySharedPref")
-    @Override
-    public void onSdkCallback(@NonNull Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(SDK_FILE_NAME, Context.MODE_PRIVATE);
-        if (null != sharedPreferences) {
-            SharedPreferences.Editor edit = sharedPreferences.edit();
-            if (null != edit) {
-                edit.putString(SDK_VERSION_KEY, BuildConfig.cache_sdk_version);
-                edit.commit();
-            }
-        }
-    }
-
-    //</editor-fold>
 
     @Multiple
     @Override
