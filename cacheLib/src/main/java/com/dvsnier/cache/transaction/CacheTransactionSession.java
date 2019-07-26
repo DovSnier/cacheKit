@@ -2,7 +2,6 @@ package com.dvsnier.cache.transaction;
 
 import android.support.annotation.NonNull;
 
-import com.dvsnier.cache.annotation.Internal;
 import com.dvsnier.cache.annotation.Multiple;
 import com.dvsnier.cache.annotation.Scheduled;
 import com.dvsnier.cache.base.TimeUnit;
@@ -13,10 +12,7 @@ import java.io.InputStream;
  * CacheTransactionSession
  * Created by dovsnier on 2019-07-15.
  */
-public abstract class CacheTransactionSession implements ICacheTransactionSession<CacheTransactionSession> {
-
-    protected String alias;
-    protected ITransaction<CacheTransactionSession> internalTransactionListener;
+public abstract class CacheTransactionSession extends AbstractCacheTransactionSession<CacheTransactionSession> {
 
     @Multiple
     @Scheduled
@@ -256,24 +252,6 @@ public abstract class CacheTransactionSession implements ICacheTransactionSessio
             }
         }
         return false;
-    }
-
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
-
-    @Internal
-    protected ITransaction<CacheTransactionSession> getTransactionListener() {
-        return internalTransactionListener;
-    }
-
-    @Internal
-    protected void setTransactionListener(ITransaction<CacheTransactionSession> transaction) {
-        this.internalTransactionListener = transaction;
     }
 
     @Override

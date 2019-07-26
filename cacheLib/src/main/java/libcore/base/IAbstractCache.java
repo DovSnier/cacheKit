@@ -4,15 +4,10 @@ package libcore.base;
  * IAbstractCache
  * Created by dovsnier on 2019-07-02.
  */
-public interface IAbstractCache {
+public interface IAbstractCache extends ICache {
 
     /**
-     * the default values, only for computational comparisons
+     * the timestamp valid masks
      */
-    int DEFAULT = 0;
-
-    /**
-     * the presupposition value
-     */
-    int ONE = 1;
+    long VALID_MASK = 0L;
 }

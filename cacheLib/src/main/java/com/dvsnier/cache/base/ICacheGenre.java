@@ -1,7 +1,7 @@
 package com.dvsnier.cache.base;
 
-import libcore.base.IDiskLruCache;
-import libcore.base.ILruCache;
+import libcore.base.IDiskLruGenre;
+import libcore.base.ILruGenre;
 
 /**
  * ICacheGenre
@@ -12,28 +12,28 @@ public interface ICacheGenre {
     /**
      * to get lru cache instance
      *
-     * @return {@link ILruCache}
+     * @return {@link ILruGenre}
      */
-    ILruCache<String, Object> getCache();
+    ILruGenre<String, Object> getCache();
 
     /**
      * the set lru cache instance
      *
-     * @param lruCache {@link ILruCache}
+     * @param lruCache {@link ILruGenre}
      */
-    void setCache(ILruCache<String, Object> lruCache);
+    void setCache(ILruGenre<String, Object> lruCache);
 
     /**
      * to get disk lru cache instance
      *
-     * @return {@link IDiskLruCache}
+     * @return {@link IDiskLruGenre}
      */
-    IDiskLruCache getDiskCache();
+    IDiskLruGenre getDiskCache();
 
     /**
      * the set disk lru cache instance
      *
-     * @param diskLruCache {@link IDiskLruCache}
+     * @param diskLruCache {@link IDiskLruGenre}
      */
-    void setDiskCache(IDiskLruCache diskLruCache);
+    void setDiskCache(IDiskLruGenre diskLruCache);
 }

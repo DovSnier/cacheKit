@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.dvsnier.cache.CacheManager;
 import com.dvsnier.cache.annotation.Hide;
 import com.dvsnier.cache.annotation.LSM;
 import com.dvsnier.cache.annotation.Multiple;
@@ -22,6 +23,11 @@ import com.dvsnier.cache.transaction.ISetCacheTransactionListener;
 import com.dvsnier.cache.transaction.ISetTransactionSessionChangeListener;
 import com.dvsnier.cache.transaction.OnCacheTransactionListener;
 import com.dvsnier.cache.transaction.OnTransactionSessionChangeListener;
+
+import java.util.Iterator;
+import java.util.Map;
+
+import libcore.base.IBaseCache;
 
 /**
  * CacheWrapper
@@ -55,7 +61,9 @@ public class CacheWrapper implements ICacheWrapper, OnEngineInstrumentStatusList
 
     @Override
     public void close() {
-        getEngineInstrument().close();
+        if (null != getEngineInstrument()) {
+            getEngineInstrument().close();
+        }
     }
 
     public void initialize(@NonNull Context context) {
@@ -75,7 +83,9 @@ public class CacheWrapper implements ICacheWrapper, OnEngineInstrumentStatusList
             if (getCacheSession() instanceof IAlias) {
                 ((IAlias) getCacheSession()).setAlias(getEngineInstrument().getAlias());
             }
-            // 2. to association caching engine
+            // 2. to update cache pool
+            rebuildIndexOfCachePool();
+            // 3. to association caching engine
             if (getCacheSession() instanceof CacheSession) {
                 ((CacheSession) getCacheSession()).associationCachingEngine(getEngineInstrument());
             }
@@ -113,6 +123,7 @@ public class CacheWrapper implements ICacheWrapper, OnEngineInstrumentStatusList
     //</editor-fold>
 
     @Hide
+    @Nullable
     protected IEngineInstrument getEngineInstrument() {
         return engineInstrument;
     }
@@ -127,7 +138,34 @@ public class CacheWrapper implements ICacheWrapper, OnEngineInstrumentStatusList
     }
 
     public String getAlias() {
-        return getEngineInstrument().getAlias();
+        if (null != getEngineInstrument()) {
+            return getEngineInstrument().getAlias();
+        }
+        return null;
+    }
+
+    protected void rebuildIndexOfCachePool() {
+        Iterator<Map.Entry<String, IBaseCache>> iterator = CacheManager.getInstance().getCachePool().entrySet().iterator();
+        if (iterator.hasNext()) {
+            Map.Entry<String, IBaseCache> entry = iterator.next();
+            if (null != entry) {
+                String key = entry.getKey();
+                IBaseCache value = entry.getValue();
+                if (this == value) {
+                    //noinspection ConstantConditions
+                    if (key.equals(getEngineInstrument().getAlias())) {
+                        // nothing to do
+                    } else {
+                        if (CacheManager.getInstance().getCachePool().containsKey(getEngineInstrument().getAlias())) {
+                            throw new IllegalStateException(String.format("a cache engine(%s) with the same name already exists in the cache pool", getEngineInstrument().getAlias()));
+                        } else {
+                            iterator.remove();
+                            CacheManager.getInstance().getCachePool().put(getEngineInstrument().getAlias(), this);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

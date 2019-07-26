@@ -4,13 +4,14 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.dvsnier.cache.BuildConfig;
 import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.config.ICacheConfig;
 
-import libcore.base.IDiskLruCache;
-import libcore.base.ILruCache;
+import libcore.base.IDiskLruGenre;
+import libcore.base.ILruGenre;
 
 /**
  * CacheEngineInstrument
@@ -135,16 +136,24 @@ public class CacheEngineInstrument implements IEngineInstrument, IGetInstantiate
         this.onEngineInstrumentStatusListener = onEngineInstrumentStatusListener;
     }
 
-    public ILruCache getLruCache() {
+    public ILruGenre getLruCache() {
         if (getInstantiate() instanceof Instantiate) {
             return ((Instantiate) getInstantiate()).getLruCache();
         }
         return null;
     }
 
-    public IDiskLruCache getDiskLruCache() {
+    public IDiskLruGenre getDiskLruCache() {
         if (getInstantiate() instanceof Instantiate) {
             return ((Instantiate) getInstantiate()).getDiskLruCache();
+        }
+        return null;
+    }
+
+    @Nullable
+    public CacheGenre getCacheGenre() {
+        if (null != getInstantiate() && getInstantiate() instanceof Instantiate) {
+            return ((Instantiate) getInstantiate()).getCacheGenre();
         }
         return null;
     }

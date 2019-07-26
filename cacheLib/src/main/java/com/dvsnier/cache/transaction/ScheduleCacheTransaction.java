@@ -20,20 +20,21 @@ import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 
-import libcore.io.DiskLruCache;
-import libcore.io.LruCache;
+import libcore.base.IAbstractCache;
+import libcore.schedule.ScheduleDiskLruCache;
+import libcore.schedule.ScheduledLruCache;
 
 /**
- * CacheTransaction
+ * ScheduleCacheTransaction
  * Created by dovsnier on 2018/6/12.
  */
-public class CacheTransaction extends AbstractCacheTransaction {
+public class ScheduleCacheTransaction extends AbstractCacheTransaction {
 
-    public CacheTransaction() {
+    public ScheduleCacheTransaction() {
         super();
     }
 
-    public CacheTransaction(ICacheTransactionSession transactionSession) {
+    public ScheduleCacheTransaction(ICacheTransactionSession transactionSession) {
         super(transactionSession);
     }
 
@@ -41,6 +42,12 @@ public class CacheTransaction extends AbstractCacheTransaction {
 
     @Override
     public CacheTransactionSession put(@NonNull String key, Object value) {
+        return put(key, value, IAbstractCache.VALID_MASK, null);
+    }
+
+    @Scheduled
+    @Override
+    public CacheTransactionSession put(@NonNull String key, Object value, long duration, TimeUnit timeUnit) {
         if (validateKey(key)) {
             //noinspection ConstantConditions
             Debug.w(String.format("the current cache engine(%s), key(%s) is an illegal parameter.", getTransactionSession().getAlias(), key));
@@ -52,7 +59,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
             return getCacheTransaction(Type.DEFAULT);
         }
         if (value instanceof Serializable) {
-            putObject(key, value);
+            putObject(key, value, duration, timeUnit);
         } else {
             //noinspection ConstantConditions
             Debug.d(String.format("the current cache engine(%s), that key(%s), then value(%s) does not implement Serializable.", getTransactionSession().getAlias(), key, value));
@@ -60,18 +67,13 @@ public class CacheTransaction extends AbstractCacheTransaction {
         return getCacheTransaction(Type.DEFAULT);
     }
 
-    @Scheduled
     @Override
-    public CacheTransactionSession put(@NonNull String key, Object value, long duration, TimeUnit timeUnit) {
-//        throw new UnimplementedException();
-        put(key, value);
-        //noinspection ConstantConditions
-        Debug.w(String.format("the current cache engine(%s), then key(%s) - value(%s), that calls do not conform to specifications. please configure CacheGenre#scheduled before using it. currently, the default configuration is used.", getTransactionSession().getAlias(), key, value));
-        return getCacheTransaction(Type.DEFAULT);
+    public CacheTransactionSession putString(@NonNull String key, String value) {
+        return putString(key, value, IAbstractCache.VALID_MASK, null);
     }
 
     @Override
-    public CacheTransactionSession putString(@NonNull String key, String value) {
+    public CacheTransactionSession putString(@NonNull String key, String value, long duration, TimeUnit timeUnit) {
         if (validateKey(key)) {
             //noinspection ConstantConditions
             Debug.w(String.format("the current cache engine(%s), key(%s) is an illegal parameter.", getTransactionSession().getAlias(), key));
@@ -84,20 +86,19 @@ public class CacheTransaction extends AbstractCacheTransaction {
         }
         if (null != getCache()) {
             //noinspection
-            getCache().put(key, value);
+            getCache().put(key, value, duration, timeUnit);
         } else {
             //noinspection ConstantConditions
             Debug.e(String.format("the current cache engine(%s), key(%s) - value(%s), then memory cache is illegal(null).", getTransactionSession().getAlias(), key, value));
         }
         if (null != getDiskCache()) {
-            DiskLruCache.Editor edit = null;
+            ScheduleDiskLruCache.Editor edit = null;
             OutputStream outputStream = null;
             BufferedWriter bufferedWriter = null;
             try {
-                edit = getDiskCache().edit(key);
+                edit = getDiskCache().edit(key, duration, timeUnit);
                 if (null != edit) {
                     outputStream = edit.newOutputStream(DEFAULT_INDEX);
-                    //noinspection ConstantConditions
                     if (null != outputStream) {
                         bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, Charset.forName("UTF-8")));
                         bufferedWriter.write(value);
@@ -142,16 +143,12 @@ public class CacheTransaction extends AbstractCacheTransaction {
     }
 
     @Override
-    public CacheTransactionSession putString(@NonNull String key, String value, long duration, TimeUnit timeUnit) {
-//        throw new UnimplementedException();
-        putString(key, value);
-        //noinspection ConstantConditions
-        Debug.w(String.format("the current cache engine(%s), then key(%s) - value(%s), that calls do not conform to specifications. please configure CacheGenre#scheduled before using it. currently, the default configuration is used.", getTransactionSession().getAlias(), key, value));
-        return getCacheTransaction(Type.DEFAULT);
+    public CacheTransactionSession putInputStream(@NonNull String key, InputStream inputStream) {
+        return putInputStream(key, inputStream, IAbstractCache.VALID_MASK, null);
     }
 
     @Override
-    public CacheTransactionSession putInputStream(@NonNull String key, InputStream inputStream) {
+    public CacheTransactionSession putInputStream(@NonNull String key, InputStream inputStream, long duration, TimeUnit timeUnit) {
         if (validateKey(key)) {
             //noinspection ConstantConditions
             Debug.w(String.format("the current cache engine(%s), key(%s) is an illegal parameter.", getTransactionSession().getAlias(), key));
@@ -164,22 +161,21 @@ public class CacheTransaction extends AbstractCacheTransaction {
         }
         if (null != getCache() && CacheAllocation.INSTANCE().ApiOfInner()) {
             //noinspection
-            getCache().put(key, inputStream);
+            getCache().put(key, inputStream, duration, timeUnit);
         } else {
             //noinspection ConstantConditions
             Debug.w(String.format("the current cache engine(%s), key(%s) - value(%s), then memory cache is illegal(that cache allocation uses default values).", getTransactionSession().getAlias(), key, inputStream));
         }
         if (null != getDiskCache()) {
-            DiskLruCache.Editor edit = null;
+            ScheduleDiskLruCache.Editor edit = null;
             OutputStream outputStream = null;
             BufferedInputStream bufferedInputStream = null;
             BufferedOutputStream bufferedOutputStream = null;
             byte[] bytes = new byte[DEFAULT_BUFFER_SIZE];
             try {
-                edit = getDiskCache().edit(key);
+                edit = getDiskCache().edit(key, duration, timeUnit);
                 if (null != edit) {
                     outputStream = edit.newOutputStream(DEFAULT_INDEX);
-                    //noinspection ConstantConditions
                     if (null != outputStream) {
                         bufferedOutputStream = new BufferedOutputStream(outputStream);
                         bufferedInputStream = new BufferedInputStream(inputStream);
@@ -225,16 +221,12 @@ public class CacheTransaction extends AbstractCacheTransaction {
     }
 
     @Override
-    public CacheTransactionSession putInputStream(@NonNull String key, InputStream inputStream, long duration, TimeUnit timeUnit) {
-//        throw new UnimplementedException();
-        putInputStream(key, inputStream);
-        //noinspection ConstantConditions
-        Debug.w(String.format("the current cache engine(%s), then key(%s) - value(%s), that calls do not conform to specifications. please configure CacheGenre#scheduled before using it. currently, the default configuration is used.", getTransactionSession().getAlias(), key, inputStream));
-        return getCacheTransaction(Type.DEFAULT);
+    public CacheTransactionSession putObject(@NonNull String key, Object value) {
+        return putObject(key, value, IAbstractCache.VALID_MASK, null);
     }
 
     @Override
-    public CacheTransactionSession putObject(@NonNull String key, Object value) {
+    public CacheTransactionSession putObject(@NonNull String key, Object value, long duration, TimeUnit timeUnit) {
         if (validateKey(key)) {
             //noinspection ConstantConditions
             Debug.w(String.format("the current cache engine(%s), key(%s) is an illegal parameter.", getTransactionSession().getAlias(), key));
@@ -247,21 +239,20 @@ public class CacheTransaction extends AbstractCacheTransaction {
         }
         if (null != getCache()) {
             //noinspection
-            getCache().put(key, value);
+            getCache().put(key, value, duration, timeUnit);
         } else {
             //noinspection ConstantConditions
             Debug.e(String.format("the current cache engine(%s), key(%s) - value(%s), then memory cache is illegal(null).", getTransactionSession().getAlias(), key, value));
         }
         if (null != getDiskCache()) {
             if (value instanceof Serializable) {
-                DiskLruCache.Editor edit = null;
+                ScheduleDiskLruCache.Editor edit = null;
                 ObjectOutputStream objectOutputStream = null;
                 OutputStream outputStream = null;
                 try {
-                    edit = getDiskCache().edit(key);
+                    edit = getDiskCache().edit(key, duration, timeUnit);
                     if (null != edit) {
                         outputStream = edit.newOutputStream(DEFAULT_INDEX);
-                        //noinspection ConstantConditions
                         if (null != outputStream) {
                             objectOutputStream = new ObjectOutputStream(new BufferedOutputStream(outputStream));
                             objectOutputStream.writeObject(value);
@@ -306,15 +297,6 @@ public class CacheTransaction extends AbstractCacheTransaction {
             getOnTransactionSessionChangeListener().onTransactionSessionChange(getTransactionSession().getAlias(), key, value);
 
         }
-        return getCacheTransaction(Type.DEFAULT);
-    }
-
-    @Override
-    public CacheTransactionSession putObject(@NonNull String key, Object value, long duration, TimeUnit timeUnit) {
-//        throw new UnimplementedException();
-        putObject(key, value);
-        //noinspection ConstantConditions
-        Debug.w(String.format("the current cache engine(%s), then key(%s) - value(%s), that calls do not conform to specifications. please configure CacheGenre#scheduled before using it. currently, the default configuration is used.", getTransactionSession().getAlias(), key, value));
         return getCacheTransaction(Type.DEFAULT);
     }
 
@@ -368,7 +350,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
         if (validateValue(value)) {
             if (null != getDiskCache()) {
                 try {
-                    DiskLruCache.Snapshot snapshot = getDiskCache().get(key);
+                    ScheduleDiskLruCache.Snapshot snapshot = getDiskCache().get(key);
                     if (null != snapshot) {
                         value = snapshot.getString(DEFAULT_INDEX);
                     }
@@ -414,7 +396,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
         if (validateValue(value)) {
             if (null != getDiskCache()) {
                 try {
-                    DiskLruCache.Snapshot snapshot = getDiskCache().get(key);
+                    ScheduleDiskLruCache.Snapshot snapshot = getDiskCache().get(key);
                     if (null != snapshot) {
                         value = snapshot.getInputStream(DEFAULT_INDEX);
                     }
@@ -458,7 +440,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
                 InputStream inputStream = null;
                 ObjectInputStream objectInputStream = null;
                 try {
-                    DiskLruCache.Snapshot snapshot = getDiskCache().get(key);
+                    ScheduleDiskLruCache.Snapshot snapshot = getDiskCache().get(key);
                     if (null != snapshot) {
                         inputStream = snapshot.getInputStream(DEFAULT_INDEX);
                         if (null != inputStream) {
@@ -553,18 +535,18 @@ public class CacheTransaction extends AbstractCacheTransaction {
     //</editor-fold>
 
     @Override
-    public LruCache<String, Object> getCache() {
-        if (cache instanceof LruCache) {
+    public ScheduledLruCache<String, Object> getCache() {
+        if (cache instanceof ScheduledLruCache) {
             //noinspection unchecked
-            return (LruCache<String, Object>) cache;
+            return (ScheduledLruCache<String, Object>) cache;
         }
         throw new ClassCastException();
     }
 
     @Override
-    public DiskLruCache getDiskCache() {
-        if (diskCache instanceof DiskLruCache) {
-            return (DiskLruCache) diskCache;
+    public ScheduleDiskLruCache getDiskCache() {
+        if (diskCache instanceof ScheduleDiskLruCache) {
+            return (ScheduleDiskLruCache) diskCache;
         }
         throw new ClassCastException();
     }
