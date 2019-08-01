@@ -7,8 +7,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.dvsnier.cache.BuildConfig;
+import com.dvsnier.cache.annotation.Hide;
 import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.config.ICacheConfig;
+import com.dvsnier.cache.config.Type;
 
 import libcore.base.IDiskLruGenre;
 import libcore.base.ILruGenre;
@@ -87,6 +89,25 @@ public class CacheEngineInstrument implements IEngineInstrument, IGetInstantiate
     }
 
     //</editor-fold>
+
+    @Hide
+    public boolean evict(@NonNull Type type) {
+        if (null != getInstantiate() && getInstantiate() instanceof Instantiate) {
+            ((Instantiate) getInstantiate()).evict(type);
+            if (null != getOnEngineInstrumentStatusListener()) {
+                getOnEngineInstrumentStatusListener().onEvict(type);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void evictAll() {
+        if (null != getInstantiate() && getInstantiate() instanceof Instantiate) {
+            ((Instantiate) getInstantiate()).evictAll();
+        }
+    }
+
     //<editor-fold desc="ICacheAPI">
 
     @SuppressLint("ApplySharedPref")

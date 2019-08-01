@@ -509,8 +509,8 @@ public final class ScheduleDiskLruCache implements IScheduledDiskLruCache {
         }
         if (entry.isExpired()) {
             expireCount++;
-            //noinspection StringConcatenationInsideStringBufferAppend
-            journalWriter.append(EXPIRED + ' ' + key + '\n');
+            remove(key);
+            journalWriter.flush();
             return null;
         }
 

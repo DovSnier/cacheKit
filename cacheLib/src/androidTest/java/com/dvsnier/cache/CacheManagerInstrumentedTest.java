@@ -16,6 +16,7 @@ import com.dvsnier.cache.config.IType;
 import com.dvsnier.cache.infrastructure.AbstractStorage;
 import com.dvsnier.cache.infrastructure.CacheStorage;
 import com.dvsnier.cache.infrastructure.Debug;
+import com.dvsnier.cache.infrastructure.FileStorage;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -25,6 +26,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.ConcurrentHashMap;
 
 import libcore.base.IBaseCache;
@@ -45,6 +49,7 @@ public class CacheManagerInstrumentedTest {
     protected static final String KEY_2 = "key_2";
     protected static final String KEY_3 = "key_3";
     protected static final String KEY_4 = "key_4";
+    protected static final String FILE_TEMP = "temp.txt";
 
     public Context context;
 
@@ -52,6 +57,7 @@ public class CacheManagerInstrumentedTest {
     public void setUp() throws Exception {
         Debug.i("开始进行单元测试...");
         context = InstrumentationRegistry.getTargetContext();
+        FileStorage.INSTANCE().setContext(context);
 //        pre_conditions_0();
 //        pre_conditions_1();
         pre_conditions_2();
@@ -491,36 +497,208 @@ public class CacheManagerInstrumentedTest {
 
     @Test
     public void putInputStream() {
-        // nothing to do
+        InputStream inputStream1 = open(FILE_TEMP);
+        InputStream inputStream2 = open(FILE_TEMP);
+        InputStream inputStream3 = open(FILE_TEMP);
+        InputStream inputStream4 = open(FILE_TEMP);
+        instance().putInputStream(KEY_1, inputStream1)
+                .putInputStream(KEY_2, inputStream2)
+                .putInputStream(KEY_3, inputStream3)
+                .putInputStream(String.valueOf(System.currentTimeMillis()), inputStream4)
+                .commit();
     }
 
     @Test
     public void getInputStream() {
-        // nothing to do
+        putInputStream();
+        Object o1 = instance().getInputStream(KEY_1);
+        assertThat(o1).isNotNull();
+        assertThat(o1).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o1);
+        Object o2 = instance().getInputStream(KEY_2);
+        assertThat(o2).isNotNull();
+        assertThat(o2).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o2);
+        Object o3 = instance().getInputStream(KEY_3);
+        assertThat(o3).isNotNull();
+        assertThat(o3).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o3);
     }
 
     @Multiple
     @Test
     public void putInputStream_of_multiple() {
-        // nothing to do
+        InputStream inputStream1 = open(FILE_TEMP);
+        InputStream inputStream2 = open(FILE_TEMP);
+        InputStream inputStream3 = open(FILE_TEMP);
+        InputStream inputStream4 = open(FILE_TEMP);
+        InputStream inputStream5 = open(FILE_TEMP);
+        InputStream inputStream6 = open(FILE_TEMP);
+        InputStream inputStream7 = open(FILE_TEMP);
+        instance().putInputStream(obtainDefaultType(), KEY_1, inputStream1).commit(obtainDefaultType());
+        instance().putInputStream(obtainMultipleDefaultType(), KEY_1, inputStream2).commit(obtainMultipleDefaultType());
+        instance().putInputStream(obtainScheduledType(), KEY_1, inputStream3).commit(obtainScheduledType());
+
+        instance().putInputStream(String.valueOf(System.currentTimeMillis()), inputStream4).commit();
+        instance().putInputStream(obtainDefaultType(), String.valueOf(System.currentTimeMillis()), inputStream5).commit(obtainDefaultType());
+        instance().putInputStream(obtainMultipleDefaultType(), String.valueOf(System.currentTimeMillis()), inputStream6).commit(obtainMultipleDefaultType());
+        instance().putInputStream(obtainScheduledType(), String.valueOf(System.currentTimeMillis()), inputStream7).commit(obtainScheduledType());
     }
 
     @Multiple
     @Test
     public void getInputStream_of_multiple() {
-        // nothing to do
+        put_of_multiple();
+
+        Object o1 = instance().getInputStream(obtainDefaultType(), KEY_1);
+        assertThat(o1).isNotNull();
+        assertThat(o1).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o1);
+        Object o2 = instance().getInputStream(obtainMultipleDefaultType(), KEY_1);
+        assertThat(o2).isNotNull();
+        assertThat(o2).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o2);
+        Object o3 = instance().getInputStream(obtainScheduledType(), KEY_1);
+        assertThat(o3).isNotNull();
+        assertThat(o3).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o3);
     }
 
     @Scheduled
     @Test
     public void putInputStream_of_scheduled() {
-        // nothing to do
+        InputStream inputStream1 = open(FILE_TEMP);
+        InputStream inputStream2 = open(FILE_TEMP);
+        InputStream inputStream3 = open(FILE_TEMP);
+        InputStream inputStream4 = open(FILE_TEMP);
+        InputStream inputStream5 = open(FILE_TEMP);
+        InputStream inputStream6 = open(FILE_TEMP);
+        InputStream inputStream7 = open(FILE_TEMP);
+        InputStream inputStream8 = open(FILE_TEMP);
+        InputStream inputStream9 = open(FILE_TEMP);
+        InputStream inputStream10 = open(FILE_TEMP);
+        InputStream inputStream11 = open(FILE_TEMP);
+        InputStream inputStream12 = open(FILE_TEMP);
+        InputStream inputStream13 = open(FILE_TEMP);
+
+        instance().putInputStream(KEY_0, inputStream1, 1, TimeUnit.MINUTES).commit();
+        instance().putInputStream(obtainDefaultType(), KEY_1, inputStream2).commit(obtainDefaultType());
+        instance().putInputStream(obtainDefaultType(), KEY_2, inputStream3, 200, TimeUnit.MILLISECONDS).commit(obtainDefaultType());
+        instance().putInputStream(obtainDefaultType(), KEY_3, inputStream4, 1, TimeUnit.MINUTES).commit(obtainDefaultType());
+
+        instance().putInputStream(obtainMultipleDefaultType(), KEY_1, inputStream5).commit(obtainMultipleDefaultType());
+        instance().putInputStream(obtainMultipleDefaultType(), KEY_2, inputStream6, 200, TimeUnit.MILLISECONDS).commit(obtainMultipleDefaultType());
+        instance().putInputStream(obtainMultipleDefaultType(), KEY_3, inputStream7, 1, TimeUnit.MINUTES).commit(obtainMultipleDefaultType());
+
+        instance().putInputStream(obtainScheduledType(), KEY_1, inputStream8).commit(obtainScheduledType());
+        instance().putInputStream(obtainScheduledType(), KEY_2, inputStream9, 200, TimeUnit.MILLISECONDS).commit(obtainScheduledType());
+        instance().putInputStream(obtainScheduledType(), KEY_3, inputStream10, 1, TimeUnit.MINUTES).commit(obtainScheduledType());
+
+        instance().putInputStream(IType.TYPE_DOCUMENTS, KEY_1, inputStream11).commit(IType.TYPE_DOCUMENTS);
+        instance().putInputStream(IType.TYPE_DOCUMENTS, KEY_2, inputStream12, 200, TimeUnit.MILLISECONDS).commit(IType.TYPE_DOCUMENTS);
+        instance().putInputStream(IType.TYPE_DOCUMENTS, KEY_3, inputStream13, 1, TimeUnit.MINUTES).commit(IType.TYPE_DOCUMENTS);
     }
 
     @Scheduled
     @Test
     public void getInputStream_of_scheduled() {
-        // nothing to do
+        putInputStream_of_scheduled();
+//        CacheGenre#Scheduled
+        Object o0 = instance().getInputStream(KEY_0);
+        assertThat(o0).isNotNull();
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o0);
+        Object o1 = instance().getInputStream(obtainDefaultType(), KEY_1);
+        assertThat(o1).isNotNull();
+        assertThat(o1).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o1);
+        Object o2 = instance().getInputStream(obtainDefaultType(), KEY_2);
+        assertThat(o2).isNotNull();
+        assertThat(o2).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o2);
+        Object o3 = instance().getInputStream(obtainDefaultType(), KEY_3);
+        assertThat(o3).isNotNull();
+        assertThat(o3).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o3);
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Object o4 = instance().getInputStream(obtainDefaultType(), KEY_2);
+        assertThat(o4).isNull(); // this is null , because of scheduled config
+        //noinspection
+//        FileStorage.INSTANCE().writeToLog((InputStream) o4);
+        Object o5 = instance().getInputStream(obtainDefaultType(), KEY_3);
+        assertThat(o5).isNotNull();
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o5);
+//        CacheGenre#Default
+        Object o6 = instance().getInputStream(obtainMultipleDefaultType(), KEY_1);
+        assertThat(o6).isNotNull();
+        assertThat(o6).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o6);
+        Object o7 = instance().getInputStream(obtainMultipleDefaultType(), KEY_2);
+        assertThat(o7).isNotNull();
+        assertThat(o7).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o7);
+        Object o8 = instance().getInputStream(obtainMultipleDefaultType(), KEY_3);
+        assertThat(o8).isNotNull();
+        assertThat(o8).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o8);
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Object o9 = instance().getInputStream(obtainMultipleDefaultType(), KEY_2);
+        assertThat(o9).isNotNull(); // this is not null , because of default config
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o9);
+        Object o10 = instance().getInputStream(obtainMultipleDefaultType(), KEY_3);
+        assertThat(o10).isNotNull();
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o10);
+//        CacheGenre#Scheduled
+        Object o11 = instance().getInputStream(obtainScheduledType(), KEY_1);
+        assertThat(o11).isNotNull();
+        assertThat(o11).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o11);
+        Object o12 = instance().getInputStream(obtainScheduledType(), KEY_2);
+        assertThat(o12).isNull(); // this is null , because of scheduled config
+        //noinspection
+//        FileStorage.INSTANCE().writeToLog((InputStream) o12);
+        Object o13 = instance().getInputStream(obtainScheduledType(), KEY_3);
+        assertThat(o13).isNotNull();
+        assertThat(o13).isInstanceOf(InputStream.class);
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o13);
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Object o14 = instance().getInputStream(obtainScheduledType(), KEY_2);
+        assertThat(o14).isNull(); // this is null , because of scheduled config
+        //noinspection
+//        FileStorage.INSTANCE().writeToLog((InputStream) o14);
+        Object o15 = instance().getInputStream(obtainScheduledType(), KEY_3);
+        assertThat(o15).isNotNull();
+        //noinspection CastCanBeRemovedNarrowingVariableType
+        FileStorage.INSTANCE().writeToLog((InputStream) o15);
     }
 
     @Test
@@ -655,6 +833,11 @@ public class CacheManagerInstrumentedTest {
         assertThat(instance().getCachePool()).isEmpty();
     }
 
+    @Test
+    public void deleteFiles() {
+        FileStorage.INSTANCE().deleteFiles(CacheStorage.INSTANCE().getBaseDir(context));
+    }
+
     @PreCondition
     protected void pre_conditions_0() {
         CacheManager.getInstance().initialize(context);
@@ -726,6 +909,21 @@ public class CacheManagerInstrumentedTest {
 
     protected CacheManager instance() {
         return CacheManager.getInstance();
+    }
+
+    @PreCondition
+    protected InputStream open(@NonNull String fileName) {
+        try {
+            return context.getAssets().open("mock" + File.separator + fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Regulation
+    protected void debug(Object object) {
+        if (null != object) Debug.d(String.format("%s", object));
     }
 
     @Regulation

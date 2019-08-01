@@ -146,9 +146,16 @@ public abstract class CacheGenre {
         return lruCache;
     }
 
+    protected void setLruCache(ILruGenre lruCache) {
+        this.lruCache = lruCache;
+    }
 
     public IDiskLruGenre getDiskLruCache() {
         return diskLruCache;
+    }
+
+    protected void setDiskLruCache(IDiskLruGenre diskLruCache) {
+        this.diskLruCache = diskLruCache;
     }
 
     public String getAlias() {
@@ -186,14 +193,16 @@ public abstract class CacheGenre {
             case MEMORY:
                 if (null != getLruCache()) {
                     getLruCache().evictAll();
-                    Debug.d(String.format("the default cache engine(%s - %s) is evicted.", getAlias(), type.toString().toLowerCase()));
+                    Debug.w(String.format("the current cache engine(%s - %s) is evicted.", getAlias(), type.toString().toLowerCase()));
                 }
+                setLruCache(null);
                 return true;
             case DISK:
                 if (null != getDiskLruCache()) {
                     getDiskLruCache().evictAll();
-                    Debug.d(String.format("the default cache engine(%s - %s) is evicted.", getAlias(), type.toString().toLowerCase()));
+                    Debug.w(String.format("the current cache engine(%s - %s) is evicted.", getAlias(), type.toString().toLowerCase()));
                 }
+                setDiskLruCache(null);
                 return true;
             case DEFAULT:
                 evictAll();
@@ -209,6 +218,8 @@ public abstract class CacheGenre {
         if (null != getDiskLruCache()) {
             getDiskLruCache().evictAll();
         }
+        setLruCache(null);
+        setDiskLruCache(null);
         Debug.i(String.format("the current cache engine(%s) is evicted.", getAlias()));
     }
 

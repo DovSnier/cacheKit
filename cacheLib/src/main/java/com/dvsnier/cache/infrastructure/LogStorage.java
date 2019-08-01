@@ -40,7 +40,7 @@ public class LogStorage extends AbstractFileStorage implements ILogStorage {
         if (null != process) {
             InputStream inputStream = process.getInputStream();
             if (null != inputStream) {
-                writeToFile(inputStream, Double.valueOf(getFormatted(3, SCU.M)).intValue());
+                writeToFile(inputStream, Double.valueOf(getFormatted(IFileStorage.ONE, SCU.M)).intValue());
             }
         }
     }
@@ -61,7 +61,7 @@ public class LogStorage extends AbstractFileStorage implements ILogStorage {
 
         if (!TextUtils.isEmpty(processName)) {
             Debug.v(String.format("the current process id is %s, and the process name is %s.", pid, processName));
-            final String[] cmdArray = {"logcat", "-v", "time"};
+            final String[] cmdArray = {"logcat", "-v", "time", "long"}; // process thread tag
             submit(Executors.defaultThreadFactory().newThread(new Runnable() {
                 @Override
                 public void run() {
@@ -69,5 +69,9 @@ public class LogStorage extends AbstractFileStorage implements ILogStorage {
                 }
             }));
         }
+    }
+
+    public void log(@NonNull Context context) {
+        execute(context);
     }
 }

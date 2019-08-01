@@ -16,6 +16,7 @@ import com.dvsnier.cache.base.IEngineInstrument;
 import com.dvsnier.cache.base.OnEngineInstrumentStatusListener;
 import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.config.ICacheConfig;
+import com.dvsnier.cache.config.Type;
 import com.dvsnier.cache.transaction.CacheTransactionSession;
 import com.dvsnier.cache.transaction.IGetCacheTransaction;
 import com.dvsnier.cache.transaction.IGetCacheTransactionSession;
@@ -93,6 +94,13 @@ public class CacheWrapper implements ICacheWrapper, OnEngineInstrumentStatusList
     }
 
     @Override
+    public void onEvict(@NonNull Type type) {
+        if (getCacheSession() instanceof CacheSession) {
+            ((CacheSession) getCacheSession()).associationCachingEngine(getEngineInstrument());
+        }
+    }
+
+    @Override
     public void onClose() {
         if (null != engineInstrument) {
             if (engineInstrument instanceof CacheEngineInstrument) {
@@ -106,6 +114,13 @@ public class CacheWrapper implements ICacheWrapper, OnEngineInstrumentStatusList
     }
 
     //</editor-fold>
+
+    public void evictAll() {
+        if (null != getEngineInstrument() && getEngineInstrument() instanceof CacheEngineInstrument) {
+            ((CacheEngineInstrument) getEngineInstrument()).evictAll();
+        }
+    }
+
     //<editor-fold desc="IGetCacheTransaction">
 
     @LSM
@@ -126,6 +141,13 @@ public class CacheWrapper implements ICacheWrapper, OnEngineInstrumentStatusList
     @Nullable
     protected IEngineInstrument getEngineInstrument() {
         return engineInstrument;
+    }
+
+    public CacheEngineInstrument getEngine() {
+        if (null != getEngineInstrument() && getEngineInstrument() instanceof CacheEngineInstrument) {
+            return (CacheEngineInstrument) getEngineInstrument();
+        }
+        return null;
     }
 
     @Override
