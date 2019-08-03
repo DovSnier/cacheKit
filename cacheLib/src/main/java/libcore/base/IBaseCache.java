@@ -4,7 +4,7 @@ package libcore.base;
  * IBaseCache
  * Created by dovsnier on 2019-07-03.
  */
-public interface IBaseCache extends IAbstractCache {
+public interface IBaseCache extends ICache {
 
     /**
      * the default is 512m.

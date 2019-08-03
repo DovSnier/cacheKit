@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import com.dvsnier.cache.CacheCleanManager;
 import com.dvsnier.cache.CacheManager;
+import com.dvsnier.cache.base.TimeUnit;
 import com.dvsnier.cache.config.IType;
 
 import java.util.Locale;
@@ -33,7 +34,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 CacheManager.getInstance().put(key0, "测试数据: " + System.currentTimeMillis())
-                        .put(getKey(), getValue())
+                        .put(getKey(), getValue(), 2, TimeUnit.MINUTES)
                         .putObject(key2, new Bean("cache object " + System.currentTimeMillis(), BuildConfig.VERSION_NAME))
                         .putObject(getKey(), getValue())
                         .putString(key1, "测试字符串: " + view.toString())
@@ -41,6 +42,9 @@ public class MainActivity extends Activity {
                         .commit();
 
                 CacheManager.getInstance().put(IType.TYPE_DOWNLOADS, getKey(), getValue())
+                        .put(IType.TYPE_DOWNLOADS, key1, getValue(), 30, TimeUnit.SECONDS)
+                        .put(IType.TYPE_DOWNLOADS, key2, getValue(), 1, TimeUnit.MINUTES)
+                        .put(IType.TYPE_DOWNLOADS, String.valueOf(System.currentTimeMillis()), getValue(), 3, TimeUnit.SECONDS)
                         .commit(IType.TYPE_DOWNLOADS);
                 obtainContent();
                 close();
@@ -93,6 +97,10 @@ public class MainActivity extends Activity {
                 Object o0 = CacheManager.getInstance().get(key0);
                 String o1 = CacheManager.getInstance().getString(key1);
                 Object o2 = CacheManager.getInstance().getObject(key2);
+
+                Object O3 = CacheManager.getInstance().get(IType.TYPE_DOWNLOADS, key1);
+                Object O4 = CacheManager.getInstance().get(IType.TYPE_DOWNLOADS, key2);
+
                 content.setText(String.format(Locale.getDefault(), "1. value：\n\t\t\t\t%1$s\n\n2. 字符串：\n\t\t\t\t%2$s\n\n3. 对象：\n\t\t\t\t%3$s\n\n", o0, o1, o2));
             }
         }, 1000);

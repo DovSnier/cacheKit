@@ -1,13 +1,16 @@
 package com.dvsnier.cache.base;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.dvsnier.cache.annotation.Hide;
+import com.dvsnier.cache.annotation.Internal;
 import com.dvsnier.cache.annotation.LSM;
 import com.dvsnier.cache.annotation.Multiple;
 import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.infrastructure.Debug;
+import com.dvsnier.cache.transaction.AbstractCacheTransaction;
 import com.dvsnier.cache.transaction.CacheTransaction;
 import com.dvsnier.cache.transaction.CacheTransactionSession;
 import com.dvsnier.cache.transaction.ICacheTransaction;
@@ -15,6 +18,7 @@ import com.dvsnier.cache.transaction.IGetCacheTransaction;
 import com.dvsnier.cache.transaction.IGetCacheTransactionSession;
 import com.dvsnier.cache.transaction.ISetCacheTransactionListener;
 import com.dvsnier.cache.transaction.OnCacheTransactionListener;
+import com.dvsnier.cache.transaction.ScheduleCacheTransaction;
 
 /**
  * AbstractCacheSession
@@ -30,23 +34,16 @@ public abstract class AbstractCacheSession implements ICacheSession, ICacheGenre
     protected OnCacheTransactionListener onCacheTransactionListener;
 
     public AbstractCacheSession() {
-        if (null == cacheTransaction) {
-            cacheTransaction = new CacheTransaction();
-        }
     }
 
     public AbstractCacheSession(Context context) {
         this.context = context;
-        if (null == cacheTransaction) {
-            cacheTransaction = new CacheTransaction();
-        }
     }
 
     public AbstractCacheSession(Context context, ICacheTransaction cacheTransaction) {
         this.context = context;
         this.cacheTransaction = cacheTransaction;
     }
-
 
     public Context getContext() {
         return context;
@@ -120,5 +117,22 @@ public abstract class AbstractCacheSession implements ICacheSession, ICacheGenre
     public void setOnCacheTransactionListener(OnCacheTransactionListener onCacheTransactionListener) {
         this.onCacheTransactionListener = onCacheTransactionListener;
         Debug.d(String.format("the current cache engine(%s), an cache transaction listener has been set up.", getAlias()));
+    }
+
+    @Internal
+    protected void associationCacheGenre(@NonNull CacheGenre cacheGenre) {
+        if (cacheGenre instanceof CacheGenre.SCHEDULED) {
+            if (null == cacheTransaction) {
+                cacheTransaction = new ScheduleCacheTransaction();
+            }
+        } else {
+            if (null == cacheTransaction) {
+                cacheTransaction = new CacheTransaction();
+            }
+        }
+        if (cacheTransaction instanceof AbstractCacheTransaction) {
+            //noinspection ConstantConditions
+            ((AbstractCacheTransaction) cacheTransaction).getTransactionSession().setAlias(getAlias());
+        }
     }
 }

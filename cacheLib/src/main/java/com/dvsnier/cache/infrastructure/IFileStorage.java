@@ -17,6 +17,8 @@ public interface IFileStorage {
     int EOF = -1;
     /* the none */
     int NONE = 0;
+    /* the one */
+    int ONE = 1;
     /* the line file mode that include input and output */
     int FLAG_LINE = 1;
     /* the custom an file name */
@@ -25,12 +27,20 @@ public interface IFileStorage {
     int DEFAULT_SIZE = 1024;
     /* the single file mode */
     int FLAG_SINGLE_MODE = 2048;
+    /* the log file mode */
+    int FLAG_LOG_MODE = 3072;
     /* the multi file mode */
     int FLAG_MULTI_MODE = 4096;
     /* the default encoding format */
     Charset UTF_8 = Charset.forName("UTF-8");
     /* the log directory */
     String LOG = "log";
+    /* the temp directory */
+    String TEMP = "temp";
+    /* the info directory */
+    String INFO = "info";
+    /* the config directory */
+    String CONFIG = "conf";
 
     /**
      * the reading text data from stream

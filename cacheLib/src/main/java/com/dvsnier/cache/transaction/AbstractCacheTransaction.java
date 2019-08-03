@@ -9,41 +9,41 @@ import com.dvsnier.cache.config.ITransactionAlias;
 import com.dvsnier.cache.config.Type;
 import com.dvsnier.cache.infrastructure.Debug;
 
-import libcore.base.IDiskLruCache;
-import libcore.base.ILruCache;
-import libcore.io.DiskLruCache;
-import libcore.io.LruCache;
+import libcore.base.IDiskLruGenre;
+import libcore.base.ILruGenre;
 
 /**
  * AbstractCacheTransaction
  * Created by dovsnier on 2019-07-12.
  */
-public abstract class AbstractCacheTransaction implements ICacheTransaction<CacheTransactionSession>, ICacheGenre, ITransactionAlias,
-        ITransactionSession<CacheTransactionSession>, ISetTransactionSessionChangeListener<OnTransactionSessionChangeListener> {
+public abstract class AbstractCacheTransaction implements ICacheGenre, ITransactionAlias,
+        ICacheTransaction<CacheTransactionSession>, ICacheScheduledTransaction<CacheTransactionSession>,
+        ITransactionSession<CacheTransactionSession>,
+        ISetTransactionSessionChangeListener<OnTransactionSessionChangeListener> {
 
     protected Type type;
-    protected ILruCache cache;
-    protected IDiskLruCache diskCache;
+    protected ILruGenre cache;
+    protected IDiskLruGenre diskCache;
     protected ICacheTransactionSession transactionSession;
     protected OnTransactionSessionChangeListener onTransactionSessionChangeListener;
 
     public AbstractCacheTransaction() {
         transactionSession = new CacheTransactionSession() {
         };
-        ((CacheTransactionSession) transactionSession).setCacheTransactionListener(this);
+        ((CacheTransactionSession) transactionSession).setTransactionListener(this);
     }
 
     public AbstractCacheTransaction(ICacheTransactionSession transactionSession) {
         this.transactionSession = transactionSession;
-        ((CacheTransactionSession) transactionSession).setCacheTransactionListener(this);
+        ((CacheTransactionSession) transactionSession).setTransactionListener(this);
     }
 
-    public AbstractCacheTransaction(ILruCache cache, IDiskLruCache diskCache) {
+    public AbstractCacheTransaction(ILruGenre cache, IDiskLruGenre diskCache) {
         this.cache = cache;
         this.diskCache = diskCache;
         transactionSession = new CacheTransactionSession() {
         };
-        ((CacheTransactionSession) transactionSession).setCacheTransactionListener(this);
+        ((CacheTransactionSession) transactionSession).setTransactionListener(this);
     }
 
     //<editor-fold desc="ITransactionAlias">
@@ -57,24 +57,24 @@ public abstract class AbstractCacheTransaction implements ICacheTransaction<Cach
     //</editor-fold>
     //<editor-fold desc="ICacheGenre">
 
-    @Override
-    public LruCache<String, Object> getCache() {
-        //noinspection unchecked
-        return (LruCache<String, Object>) cache;
-    }
+//    @Override
+//    public ILruGenre<String, Object> getCache() {
+//        //noinspection unchecked
+//        return cache;
+//    }
 
     @Override
-    public void setCache(ILruCache<String, Object> lruCache) {
+    public void setCache(ILruGenre<String, Object> lruCache) {
         this.cache = lruCache;
     }
 
-    @Override
-    public DiskLruCache getDiskCache() {
-        return (DiskLruCache) diskCache;
-    }
+//    @Override
+//    public IDiskLruGenre getDiskCache() {
+//        return diskCache;
+//    }
 
     @Override
-    public void setDiskCache(IDiskLruCache diskLruCache) {
+    public void setDiskCache(IDiskLruGenre diskLruCache) {
         this.diskCache = diskLruCache;
     }
 
@@ -105,5 +105,18 @@ public abstract class AbstractCacheTransaction implements ICacheTransaction<Cach
         this.onTransactionSessionChangeListener = onTransactionSessionChangeListener;
         //noinspection ConstantConditions
         Debug.d(String.format("the current cache engine(%s), an cache transaction session change listener has been set up.", getTransactionSession().getAlias()));
+    }
+
+    protected boolean validateKey(@NonNull String key) {
+        //noinspection ConstantConditions
+        return null == key || " ".equals(key);
+    }
+
+    protected boolean validateValue(Object value) {
+        return null == value;
+    }
+
+    protected boolean validateOnTransactionSessionChangeListener() {
+        return null != getOnTransactionSessionChangeListener();
     }
 }
