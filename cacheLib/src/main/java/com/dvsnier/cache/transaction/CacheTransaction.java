@@ -2,6 +2,8 @@ package com.dvsnier.cache.transaction;
 
 import android.support.annotation.NonNull;
 
+import com.dvsnier.cache.annotation.Scheduled;
+import com.dvsnier.cache.base.TimeUnit;
 import com.dvsnier.cache.config.CacheAllocation;
 import com.dvsnier.cache.config.Type;
 import com.dvsnier.cache.infrastructure.Debug;
@@ -18,9 +20,8 @@ import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 
-import libcore.compat.ICompatDiskLruCache;
-import libcore.compat.ICompatLruCache;
 import libcore.io.DiskLruCache;
+import libcore.io.LruCache;
 
 /**
  * CacheTransaction
@@ -34,10 +35,6 @@ public class CacheTransaction extends AbstractCacheTransaction {
 
     public CacheTransaction(ICacheTransactionSession transactionSession) {
         super(transactionSession);
-    }
-
-    public CacheTransaction(@NonNull ICompatLruCache<String, Object> lruCache, @NonNull ICompatDiskLruCache diskLruCache) {
-        super(lruCache, diskLruCache);
     }
 
     //<editor-fold desc="ICacheTransaction">
@@ -63,6 +60,16 @@ public class CacheTransaction extends AbstractCacheTransaction {
         return getCacheTransaction(Type.DEFAULT);
     }
 
+    @Scheduled
+    @Override
+    public CacheTransactionSession put(@NonNull String key, Object value, long duration, TimeUnit timeUnit) {
+//        throw new UnimplementedException();
+        put(key, value);
+        //noinspection ConstantConditions
+        Debug.w(String.format("the current cache engine(%s), then key(%s) - value(%s), that calls do not conform to specifications. please configure CacheGenre#scheduled before using it. currently, the default configuration is used.", getTransactionSession().getAlias(), key, value));
+        return getCacheTransaction(Type.DEFAULT);
+    }
+
     @Override
     public CacheTransactionSession putString(@NonNull String key, String value) {
         if (validateKey(key)) {
@@ -80,7 +87,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
             getCache().put(key, value);
         } else {
             //noinspection ConstantConditions
-            Debug.e(String.format("the current cache engine(%s), key(%s) - value(%s), then memory cache is illegal(null).", getTransactionSession().getAlias(), key, value));
+            Debug.e(String.format("the current cache engine(%s), key(%s) - value(%s), then memory cache is illegal(null) that maybe is evicted.", getTransactionSession().getAlias(), key, value));
         }
         if (null != getDiskCache()) {
             DiskLruCache.Editor edit = null;
@@ -88,11 +95,16 @@ public class CacheTransaction extends AbstractCacheTransaction {
             BufferedWriter bufferedWriter = null;
             try {
                 edit = getDiskCache().edit(key);
-                outputStream = edit.newOutputStream(DEFAULT_INDEX);
-                bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, Charset.forName("UTF-8")));
-                bufferedWriter.write(value);
-                bufferedWriter.flush();
-                edit.commit();
+                if (null != edit) {
+                    outputStream = edit.newOutputStream(DEFAULT_INDEX);
+                    //noinspection ConstantConditions
+                    if (null != outputStream) {
+                        bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, Charset.forName("UTF-8")));
+                        bufferedWriter.write(value);
+                        bufferedWriter.flush();
+                        edit.commit();
+                    }
+                }
             } catch (IOException e) {
                 //noinspection ConstantConditions
                 Debug.e(String.format("the current cache engine(%s), key(%s) - value(%s), then disk cache persistent data failure.", getTransactionSession().getAlias(), key, value));
@@ -119,13 +131,22 @@ public class CacheTransaction extends AbstractCacheTransaction {
             }
         } else {
             //noinspection ConstantConditions
-            Debug.e(String.format("the current cache engine(%s), key(%s) - value(%s), then disk cache is illegal(null).", getTransactionSession().getAlias(), key, value));
+            Debug.e(String.format("the current cache engine(%s), key(%s) - value(%s), then disk cache is illegal(null) that maybe is evicted.", getTransactionSession().getAlias(), key, value));
         }
         if (validateOnTransactionSessionChangeListener()) {
             //noinspection ConstantConditions
             getOnTransactionSessionChangeListener().onTransactionSessionChange(getTransactionSession().getAlias(), key, value);
 
         }
+        return getCacheTransaction(Type.DEFAULT);
+    }
+
+    @Override
+    public CacheTransactionSession putString(@NonNull String key, String value, long duration, TimeUnit timeUnit) {
+//        throw new UnimplementedException();
+        putString(key, value);
+        //noinspection ConstantConditions
+        Debug.w(String.format("the current cache engine(%s), then key(%s) - value(%s), that calls do not conform to specifications. please configure CacheGenre#scheduled before using it. currently, the default configuration is used.", getTransactionSession().getAlias(), key, value));
         return getCacheTransaction(Type.DEFAULT);
     }
 
@@ -156,15 +177,20 @@ public class CacheTransaction extends AbstractCacheTransaction {
             byte[] bytes = new byte[DEFAULT_BUFFER_SIZE];
             try {
                 edit = getDiskCache().edit(key);
-                outputStream = edit.newOutputStream(DEFAULT_INDEX);
-                bufferedOutputStream = new BufferedOutputStream(outputStream);
-                bufferedInputStream = new BufferedInputStream(inputStream);
-                int read = 0;
-                while ((read = bufferedInputStream.read(bytes)) != DEFAULT) {
-                    bufferedOutputStream.write(bytes);
+                if (null != edit) {
+                    outputStream = edit.newOutputStream(DEFAULT_INDEX);
+                    //noinspection ConstantConditions
+                    if (null != outputStream) {
+                        bufferedOutputStream = new BufferedOutputStream(outputStream);
+                        bufferedInputStream = new BufferedInputStream(inputStream);
+                        int read = 0;
+                        while ((read = bufferedInputStream.read(bytes)) != DEFAULT) {
+                            bufferedOutputStream.write(bytes);
+                        }
+                        bufferedOutputStream.flush();
+                        edit.commit();
+                    }
                 }
-                bufferedOutputStream.flush();
-                edit.commit();
             } catch (IOException e) {
                 //noinspection ConstantConditions
                 Debug.e(String.format("the current cache engine(%s), key(%s) - value(%s), then disk cache persistent data failure.", getTransactionSession().getAlias(), key, inputStream));
@@ -199,6 +225,15 @@ public class CacheTransaction extends AbstractCacheTransaction {
     }
 
     @Override
+    public CacheTransactionSession putInputStream(@NonNull String key, InputStream inputStream, long duration, TimeUnit timeUnit) {
+//        throw new UnimplementedException();
+        putInputStream(key, inputStream);
+        //noinspection ConstantConditions
+        Debug.w(String.format("the current cache engine(%s), then key(%s) - value(%s), that calls do not conform to specifications. please configure CacheGenre#scheduled before using it. currently, the default configuration is used.", getTransactionSession().getAlias(), key, inputStream));
+        return getCacheTransaction(Type.DEFAULT);
+    }
+
+    @Override
     public CacheTransactionSession putObject(@NonNull String key, Object value) {
         if (validateKey(key)) {
             //noinspection ConstantConditions
@@ -215,7 +250,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
             getCache().put(key, value);
         } else {
             //noinspection ConstantConditions
-            Debug.e(String.format("the current cache engine(%s), key(%s) - value(%s), then memory cache is illegal(null).", getTransactionSession().getAlias(), key, value));
+            Debug.e(String.format("the current cache engine(%s), key(%s) - value(%s), then memory cache is illegal(null) that maybe is evicted.", getTransactionSession().getAlias(), key, value));
         }
         if (null != getDiskCache()) {
             if (value instanceof Serializable) {
@@ -224,11 +259,16 @@ public class CacheTransaction extends AbstractCacheTransaction {
                 OutputStream outputStream = null;
                 try {
                     edit = getDiskCache().edit(key);
-                    outputStream = edit.newOutputStream(DEFAULT_INDEX);
-                    objectOutputStream = new ObjectOutputStream(new BufferedOutputStream(outputStream));
-                    objectOutputStream.writeObject(value);
-                    objectOutputStream.flush();
-                    edit.commit();
+                    if (null != edit) {
+                        outputStream = edit.newOutputStream(DEFAULT_INDEX);
+                        //noinspection ConstantConditions
+                        if (null != outputStream) {
+                            objectOutputStream = new ObjectOutputStream(new BufferedOutputStream(outputStream));
+                            objectOutputStream.writeObject(value);
+                            objectOutputStream.flush();
+                            edit.commit();
+                        }
+                    }
                 } catch (IOException e) {
                     //noinspection ConstantConditions
                     Debug.e(String.format("the current cache engine(%s), key(%s) - value(%s), then disk cache persistent data failure.", getTransactionSession().getAlias(), key, value));
@@ -259,13 +299,22 @@ public class CacheTransaction extends AbstractCacheTransaction {
             }
         } else {
             //noinspection ConstantConditions
-            Debug.e(String.format("the current cache engine(%s), key(%s) - value(%s), then disk cache is illegal(null).", getTransactionSession().getAlias(), key, value));
+            Debug.e(String.format("the current cache engine(%s), key(%s) - value(%s), then disk cache is illegal(null) that maybe is evicted.", getTransactionSession().getAlias(), key, value));
         }
         if (validateOnTransactionSessionChangeListener()) {
             //noinspection ConstantConditions
             getOnTransactionSessionChangeListener().onTransactionSessionChange(getTransactionSession().getAlias(), key, value);
 
         }
+        return getCacheTransaction(Type.DEFAULT);
+    }
+
+    @Override
+    public CacheTransactionSession putObject(@NonNull String key, Object value, long duration, TimeUnit timeUnit) {
+//        throw new UnimplementedException();
+        putObject(key, value);
+        //noinspection ConstantConditions
+        Debug.w(String.format("the current cache engine(%s), then key(%s) - value(%s), that calls do not conform to specifications. please configure CacheGenre#scheduled before using it. currently, the default configuration is used.", getTransactionSession().getAlias(), key, value));
         return getCacheTransaction(Type.DEFAULT);
     }
 
@@ -282,7 +331,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
             value = getCache().get(key);
         } else {
             //noinspection ConstantConditions
-            Debug.e(String.format("the current cache engine(%s), key(%s), then memory cache is illegal(null).", getTransactionSession().getAlias(), key));
+            Debug.e(String.format("the current cache engine(%s), key(%s), then memory cache is illegal(null) that maybe is evicted.", getTransactionSession().getAlias(), key));
         }
         if (validateValue(value)) {
             value = getObject(key);
@@ -314,7 +363,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
             }
         } else {
             //noinspection ConstantConditions
-            Debug.e(String.format("the current cache engine(%s), key(%s), then memory cache is illegal(null).", getTransactionSession().getAlias(), key));
+            Debug.e(String.format("the current cache engine(%s), key(%s), then memory cache is illegal(null) that maybe is evicted.", getTransactionSession().getAlias(), key));
         }
         if (validateValue(value)) {
             if (null != getDiskCache()) {
@@ -330,7 +379,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
                 }
             } else {
                 //noinspection ConstantConditions
-                Debug.e(String.format("the current cache engine(%s), key(%s), then disk cache is illegal(null).", getTransactionSession().getAlias(), key));
+                Debug.e(String.format("the current cache engine(%s), key(%s), then disk cache is illegal(null) that maybe is evicted.", getTransactionSession().getAlias(), key));
             }
             if (!validateValue(value)) {
                 //noinspection ConstantConditions
@@ -376,7 +425,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
                 }
             } else {
                 //noinspection ConstantConditions
-                Debug.e(String.format("the current cache engine(%s), key(%s), then disk cache is illegal(null).", getTransactionSession().getAlias(), key));
+                Debug.e(String.format("the current cache engine(%s), key(%s), then disk cache is illegal(null) that maybe is evicted.", getTransactionSession().getAlias(), key));
             }
             if (!validateValue(value)) {
                 //noinspection ConstantConditions
@@ -402,7 +451,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
             value = getCache().get(key);
         } else {
             //noinspection ConstantConditions
-            Debug.e(String.format("the current cache engine(%s), key(%s), then memory cache is illegal(null).", getTransactionSession().getAlias(), key));
+            Debug.e(String.format("the current cache engine(%s), key(%s), then memory cache is illegal(null) that maybe is evicted.", getTransactionSession().getAlias(), key));
         }
         if (validateValue(value)) {
             if (null != getDiskCache()) {
@@ -412,8 +461,10 @@ public class CacheTransaction extends AbstractCacheTransaction {
                     DiskLruCache.Snapshot snapshot = getDiskCache().get(key);
                     if (null != snapshot) {
                         inputStream = snapshot.getInputStream(DEFAULT_INDEX);
-                        objectInputStream = new ObjectInputStream(new BufferedInputStream(inputStream));
-                        value = objectInputStream.readObject();
+                        if (null != inputStream) {
+                            objectInputStream = new ObjectInputStream(new BufferedInputStream(inputStream));
+                            value = objectInputStream.readObject();
+                        }
                     }
                 } catch (IOException e) {
                     //noinspection ConstantConditions
@@ -437,7 +488,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
                 }
             } else {
                 //noinspection ConstantConditions
-                Debug.e(String.format("the current cache engine(%s), key(%s), then disk cache is illegal(null).", getTransactionSession().getAlias(), key));
+                Debug.e(String.format("the current cache engine(%s), key(%s), then disk cache is illegal(null) that maybe is evicted.", getTransactionSession().getAlias(), key));
             }
             if (!validateValue(value)) {
                 //noinspection ConstantConditions
@@ -462,7 +513,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
             getCache().remove(key);
         } else {
             //noinspection ConstantConditions
-            Debug.e(String.format("the current cache engine(%s), key(%s), then memory cache is illegal(null).", getTransactionSession().getAlias(), key));
+            Debug.e(String.format("the current cache engine(%s), key(%s), then memory cache is illegal(null) that maybe is evicted.", getTransactionSession().getAlias(), key));
         }
         if (null != getDiskCache()) {
             try {
@@ -475,7 +526,7 @@ public class CacheTransaction extends AbstractCacheTransaction {
             }
         } else {
             //noinspection ConstantConditions
-            Debug.e(String.format("the current cache engine(%s), key(%s), then disk cache is illegal(null).", getTransactionSession().getAlias(), key));
+            Debug.e(String.format("the current cache engine(%s), key(%s), then disk cache is illegal(null) that maybe is evicted.", getTransactionSession().getAlias(), key));
         }
         return getCacheTransaction(Type.DEFAULT);
     }
@@ -501,16 +552,28 @@ public class CacheTransaction extends AbstractCacheTransaction {
 
     //</editor-fold>
 
-    protected boolean validateKey(@NonNull String key) {
-        //noinspection ConstantConditions
-        return null == key || " ".equals(key);
+    @Override
+    public LruCache<String, Object> getCache() {
+        if (null != cache) {
+            if (cache instanceof LruCache) {
+                //noinspection unchecked
+                return (LruCache<String, Object>) cache;
+            } else {
+                throw new ClassCastException();
+            }
+        }
+        return null;
     }
 
-    protected boolean validateValue(Object value) {
-        return null == value;
-    }
-
-    protected boolean validateOnTransactionSessionChangeListener() {
-        return null != getOnTransactionSessionChangeListener();
+    @Override
+    public DiskLruCache getDiskCache() {
+        if (null != diskCache) {
+            if (diskCache instanceof DiskLruCache) {
+                return (DiskLruCache) diskCache;
+            } else {
+                throw new ClassCastException();
+            }
+        }
+        return null;
     }
 }

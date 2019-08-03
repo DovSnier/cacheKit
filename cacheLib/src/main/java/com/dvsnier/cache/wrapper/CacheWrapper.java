@@ -5,18 +5,18 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.dvsnier.cache.CacheManager;
 import com.dvsnier.cache.annotation.Hide;
 import com.dvsnier.cache.annotation.LSM;
 import com.dvsnier.cache.annotation.Multiple;
-import com.dvsnier.cache.base.AbstractCacheSession;
+import com.dvsnier.cache.base.CacheEngineInstrument;
 import com.dvsnier.cache.base.CacheSession;
-import com.dvsnier.cache.base.ICacheEngine;
-import com.dvsnier.cache.base.ICacheGenre;
 import com.dvsnier.cache.base.ICacheSession;
-import com.dvsnier.cache.base.IGetInstantiate;
-import com.dvsnier.cache.base.Instantiate;
+import com.dvsnier.cache.base.IEngineInstrument;
+import com.dvsnier.cache.base.OnEngineInstrumentStatusListener;
 import com.dvsnier.cache.config.IAlias;
 import com.dvsnier.cache.config.ICacheConfig;
+import com.dvsnier.cache.config.Type;
 import com.dvsnier.cache.transaction.CacheTransactionSession;
 import com.dvsnier.cache.transaction.IGetCacheTransaction;
 import com.dvsnier.cache.transaction.IGetCacheTransactionSession;
@@ -25,19 +25,23 @@ import com.dvsnier.cache.transaction.ISetTransactionSessionChangeListener;
 import com.dvsnier.cache.transaction.OnCacheTransactionListener;
 import com.dvsnier.cache.transaction.OnTransactionSessionChangeListener;
 
+import java.util.Iterator;
+import java.util.Map;
+
+import libcore.base.IBaseCache;
+
 /**
  * CacheWrapper
  * Created by dovsnier on 2019-07-02.
  */
-public class CacheWrapper implements ICacheWrapper, IGetInstantiate {
+public class CacheWrapper implements ICacheWrapper, OnEngineInstrumentStatusListener {
 
-    protected ICacheEngine instantiate;
+    protected IEngineInstrument engineInstrument;
     protected ICacheSession cacheSession;
 
     public CacheWrapper() {
-        if (null == instantiate) {
-            instantiate = new Instantiate();
-        }
+        engineInstrument = new CacheEngineInstrument();
+        ((CacheEngineInstrument) engineInstrument).setOnEngineInstrumentStatusListener(this);
         cacheSession = new CacheSession();
     }
 
@@ -45,28 +49,64 @@ public class CacheWrapper implements ICacheWrapper, IGetInstantiate {
         if (TextUtils.isEmpty(alias)) {
             throw new IllegalArgumentException("the alias parameter cannot be null.");
         }
-        if (null == instantiate) {
-            instantiate = new Instantiate(alias);
-        }
+        engineInstrument = new CacheEngineInstrument(alias);
+        ((CacheEngineInstrument) engineInstrument).setOnEngineInstrumentStatusListener(this);
         cacheSession = new CacheSession();
     }
 
     public CacheWrapper(CacheSession cacheSession) {
-        if (null == instantiate) {
-            instantiate = new Instantiate();
-        }
+        engineInstrument = new CacheEngineInstrument();
+        ((CacheEngineInstrument) engineInstrument).setOnEngineInstrumentStatusListener(this);
         this.cacheSession = cacheSession;
     }
 
-    //<editor-fold desc="Closable">
-
     @Override
     public void close() {
-        if (null != getInstantiate()) {
-            getInstantiate().close();
+        if (null != getEngineInstrument()) {
+            getEngineInstrument().close();
         }
-        if (null != instantiate) {
-            instantiate = null;
+    }
+
+    public void initialize(@NonNull Context context) {
+        getEngineInstrument().initialize(context);
+    }
+
+    public void initialize(@NonNull ICacheConfig cacheConfig) {
+        getEngineInstrument().initialize(cacheConfig);
+    }
+
+    //<editor-fold desc="OnEngineInstrumentStatusListener">
+
+    @Override
+    public void onInitialize(@NonNull ICacheConfig cacheConfig) {
+        if (null != getEngineInstrument()) {
+            // 1. to set alias
+            if (getCacheSession() instanceof IAlias) {
+                ((IAlias) getCacheSession()).setAlias(getEngineInstrument().getAlias());
+            }
+            // 2. to update cache pool
+            rebuildIndexOfCachePool();
+            // 3. to association caching engine
+            if (getCacheSession() instanceof CacheSession) {
+                ((CacheSession) getCacheSession()).associationCachingEngine(getEngineInstrument());
+            }
+        }
+    }
+
+    @Override
+    public void onEvict(@NonNull Type type) {
+        if (getCacheSession() instanceof CacheSession) {
+            ((CacheSession) getCacheSession()).associationCachingEngine(getEngineInstrument());
+        }
+    }
+
+    @Override
+    public void onClose() {
+        if (null != engineInstrument) {
+            if (engineInstrument instanceof CacheEngineInstrument) {
+                ((CacheEngineInstrument) engineInstrument).setOnEngineInstrumentStatusListener(null);
+            }
+            engineInstrument = null;
         }
         if (null != cacheSession) {
             cacheSession = null;
@@ -74,62 +114,13 @@ public class CacheWrapper implements ICacheWrapper, IGetInstantiate {
     }
 
     //</editor-fold>
-    //<editor-fold desc="IInstantiate">
 
-    @Override
-    public void initialize(@NonNull Context context) {
-        //noinspection ConstantConditions
-        if (null == context) {
-            throw new IllegalArgumentException("the Context object that can't be null.");
-        }
-        if (null != getInstantiate()) {
-            getInstantiate().initialize(context);
-            if (getInstantiate() instanceof IAlias && getCacheSession() instanceof IAlias) {
-                ((IAlias) getCacheSession()).setAlias(((IAlias) getInstantiate()).getAlias());
-            }
-            if (getInstantiate() instanceof Instantiate) {
-                if (getCacheSession() instanceof ICacheGenre) {
-                    //noinspection unchecked
-                    ((ICacheGenre) getCacheSession()).setCache(((Instantiate) getInstantiate()).getLruCache());
-                    ((ICacheGenre) getCacheSession()).setDiskCache(((Instantiate) getInstantiate()).getDiskLruCache());
-                }
-            }
-        }
-        if (getCacheSession() instanceof AbstractCacheSession) {
-            ((AbstractCacheSession) getCacheSession()).setOrScheduledCacheTransaction();
+    public void evictAll() {
+        if (null != getEngineInstrument() && getEngineInstrument() instanceof CacheEngineInstrument) {
+            ((CacheEngineInstrument) getEngineInstrument()).evictAll();
         }
     }
 
-    @Override
-    public void initialize(@NonNull ICacheConfig cacheConfig) {
-        //noinspection ConstantConditions
-        if (null == cacheConfig) {
-            throw new IllegalArgumentException("the ICacheConfig object that can't be null.");
-        }
-        if (null == cacheConfig.getContext()) {
-            throw new IllegalArgumentException("the Context object that can't be null.");
-        }
-        if (null != getInstantiate()) {
-            getInstantiate().initialize(cacheConfig);
-            if (getInstantiate() instanceof IAlias && getCacheSession() instanceof IAlias) {
-                ((IAlias) getCacheSession()).setAlias(((IAlias) getInstantiate()).getAlias());
-            }
-            if (getInstantiate() instanceof Instantiate) {
-                if (getInstantiate() instanceof Instantiate) {
-                    if (getCacheSession() instanceof ICacheGenre) {
-                        //noinspection unchecked
-                        ((ICacheGenre) getCacheSession()).setCache(((Instantiate) getInstantiate()).getLruCache());
-                        ((ICacheGenre) getCacheSession()).setDiskCache(((Instantiate) getInstantiate()).getDiskLruCache());
-                    }
-                }
-            }
-        }
-        if (getCacheSession() instanceof AbstractCacheSession) {
-            ((AbstractCacheSession) getCacheSession()).setOrScheduledCacheTransaction();
-        }
-    }
-
-    //</editor-fold>
     //<editor-fold desc="IGetCacheTransaction">
 
     @LSM
@@ -146,13 +137,17 @@ public class CacheWrapper implements ICacheWrapper, IGetInstantiate {
 
     //</editor-fold>
 
-    @Override
-    public ICacheEngine getInstantiate() {
-        return instantiate;
+    @Hide
+    @Nullable
+    protected IEngineInstrument getEngineInstrument() {
+        return engineInstrument;
     }
 
-    public void setInstantiate(ICacheEngine instantiate) {
-        this.instantiate = instantiate;
+    public CacheEngineInstrument getEngine() {
+        if (null != getEngineInstrument() && getEngineInstrument() instanceof CacheEngineInstrument) {
+            return (CacheEngineInstrument) getEngineInstrument();
+        }
+        return null;
     }
 
     @Override
@@ -162,6 +157,37 @@ public class CacheWrapper implements ICacheWrapper, IGetInstantiate {
 
     public void setCacheSession(ICacheSession cacheSession) {
         this.cacheSession = cacheSession;
+    }
+
+    public String getAlias() {
+        if (null != getEngineInstrument()) {
+            return getEngineInstrument().getAlias();
+        }
+        return null;
+    }
+
+    protected void rebuildIndexOfCachePool() {
+        Iterator<Map.Entry<String, IBaseCache>> iterator = CacheManager.getInstance().getCachePool().entrySet().iterator();
+        if (iterator.hasNext()) {
+            Map.Entry<String, IBaseCache> entry = iterator.next();
+            if (null != entry) {
+                String key = entry.getKey();
+                IBaseCache value = entry.getValue();
+                if (this == value) {
+                    //noinspection ConstantConditions
+                    if (key.equals(getEngineInstrument().getAlias())) {
+                        // nothing to do
+                    } else {
+                        if (CacheManager.getInstance().getCachePool().containsKey(getEngineInstrument().getAlias())) {
+                            throw new IllegalStateException(String.format("a cache engine(%s) with the same name already exists in the cache pool", getEngineInstrument().getAlias()));
+                        } else {
+                            iterator.remove();
+                            CacheManager.getInstance().getCachePool().put(getEngineInstrument().getAlias(), this);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

@@ -23,7 +23,6 @@ public class CacheStorage extends AbstractStorage implements ICacheStorage {
     private CacheStorage() {
     }
 
-
     @Override
     public boolean isExternalStorage() {
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) && !Environment.isExternalStorageRemovable()) {
@@ -73,7 +72,7 @@ public class CacheStorage extends AbstractStorage implements ICacheStorage {
                     Debug.i(String.format("the unique cache directory(%s) already exists.", uniqueCache.getAbsolutePath()));
                 } else {
                     //noinspection ResultOfMethodCallIgnored
-                    cache.mkdirs();
+                    uniqueCache.mkdirs();
                 }
                 return uniqueCache;
             }

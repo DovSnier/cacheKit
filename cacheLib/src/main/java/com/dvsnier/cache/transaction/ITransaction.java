@@ -18,4 +18,8 @@ public interface ITransaction<T> {
      * DEFAULT_INDEX is used to determine the default index
      */
     int DEFAULT_INDEX = 0;
+    /**
+     * <code>-1</code> if there is no schedule, or beyond the bounds.
+     */
+    int NONE = -1;
 }

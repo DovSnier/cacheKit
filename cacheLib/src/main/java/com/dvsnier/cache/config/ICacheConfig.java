@@ -2,6 +2,7 @@ package com.dvsnier.cache.config;
 
 import android.content.Context;
 
+import com.dvsnier.cache.base.CacheGenre;
 import com.dvsnier.cache.infrastructure.Debug;
 import com.dvsnier.cache.infrastructure.Level;
 
@@ -63,6 +64,11 @@ public interface ICacheConfig extends IConfig {
     boolean isDebug();
 
     /**
+     * the get cache genre
+     */
+    CacheGenre getCacheGenre();
+
+    /**
      * the log priority
      *
      * @return {@see Level}
@@ -80,6 +86,7 @@ public interface ICacheConfig extends IConfig {
         private String uniqueName;
         private boolean debug;
         private Level level;
+        private CacheGenre cacheGenre;
 
         public Builder(Context context) {
             this.context = context;
@@ -130,6 +137,11 @@ public interface ICacheConfig extends IConfig {
             return this;
         }
 
+        public Builder setCacheGenre(CacheGenre cacheGenre) {
+            this.cacheGenre = cacheGenre;
+            return this;
+        }
+
         @Override
         public Context getContext() {
             return context;
@@ -173,6 +185,11 @@ public interface ICacheConfig extends IConfig {
         @Override
         public Level getLevel() {
             return level;
+        }
+
+        @Override
+        public CacheGenre getCacheGenre() {
+            return cacheGenre;
         }
 
         public ICacheConfig create() {
