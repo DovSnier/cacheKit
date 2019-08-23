@@ -16,6 +16,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Writer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -233,6 +235,80 @@ public class AbstractFileStorageInstrumentedTest {
     }
 
     @Test
+    public void writeToFile_67() throws InterruptedException {
+        File baseDir = instance().getBaseDir(context, "token67");
+        String token_w = "token_w";
+        File tokenFile_w = instance().getNewFile(baseDir, token_w);
+//        File tokenFile_w = instance().getNewFile(baseDir, token_w, false);
+        instance().writeToFile(tokenFile_w, new SimpleWriter<Writer>(WriteType.WRITE) {
+
+            @Override
+            public boolean write(Writer writer) throws IOException {
+                writer.write("token time: ");
+                writer.write(String.valueOf(System.currentTimeMillis()));
+                writer.write("\n");
+                return true;
+            }
+        });
+        instance().writeToFile(baseDir, token_w, new SimpleWriter<Writer>(WriteType.WRITE) {
+
+            @Override
+            public boolean write(Writer writer) throws IOException {
+                writer.write("token time: ");
+                writer.write(String.valueOf(System.currentTimeMillis()));
+                writer.write("\n");
+                return true;
+            }
+        });
+        instance().writeToFile(baseDir, token_w, false, new SimpleWriter<Writer>(WriteType.WRITE) {
+
+            @Override
+            public boolean write(Writer writer) throws IOException {
+                writer.write("token time: ");
+                writer.write(String.valueOf(System.currentTimeMillis()));
+                writer.write("\n");
+                return true;
+            }
+        });
+
+    }
+
+    @Test
+    public void writeToFile_89() throws InterruptedException {
+        File baseDir = instance().getBaseDir(context, "token89");
+        String token_s = "token_s";
+        File tokenFile_s = instance().getNewFile(baseDir, token_s);
+//        File tokenFile_s = instance().getNewFile(baseDir, token_s, false);
+        instance().writeToFile(tokenFile_s, new SimpleWriter<OutputStream>(WriteType.STREAM) {
+            @Override
+            public boolean write(OutputStream writer) throws IOException {
+                writer.write("token time: ".getBytes());
+                writer.write(String.valueOf(System.currentTimeMillis()).getBytes());
+                writer.write("\n".getBytes());
+                return false;
+            }
+        });
+        instance().writeToFile(baseDir, token_s, new SimpleWriter<OutputStream>(WriteType.STREAM) {
+            @Override
+            public boolean write(OutputStream writer) throws IOException {
+                writer.write("token time: ".getBytes());
+                writer.write(String.valueOf(System.currentTimeMillis()).getBytes());
+                writer.write("\n".getBytes());
+                return false;
+            }
+        });
+        instance().writeToFile(baseDir, token_s, false, new SimpleWriter<OutputStream>(WriteType.STREAM) {
+            @Override
+            public boolean write(OutputStream writer) throws IOException {
+                writer.write("token time: ".getBytes());
+                writer.write(String.valueOf(System.currentTimeMillis()).getBytes());
+                writer.write("\n".getBytes());
+                return false;
+            }
+        });
+    }
+
+    @Test
     public void getNewFile() {
         File baseDir = instance().getBaseDir(context);
         String simpleName = AbstractFileStorageInstrumentedTest.class.getSimpleName();
@@ -257,6 +333,27 @@ public class AbstractFileStorageInstrumentedTest {
         assertThat(newFile3.isFile()).isTrue();
         assertThat(newFile3.canRead()).isTrue();
         assertThat(newFile3.canWrite()).isTrue();
+
+        File newFile4 = instance().getNewFile(baseDir, simpleName + ".flag"); // file
+        assertThat(newFile4).isNotNull();
+        assertThat(newFile4.exists()).isTrue();
+        assertThat(newFile4.isFile()).isTrue();
+        assertThat(newFile4.canRead()).isTrue();
+        assertThat(newFile4.canWrite()).isTrue();
+
+        File newFile5 = instance().getNewFile(baseDir, simpleName + ".flag_5", true); // file
+        assertThat(newFile5).isNotNull();
+        assertThat(newFile5.exists()).isTrue();
+        assertThat(newFile5.isFile()).isTrue();
+        assertThat(newFile5.canRead()).isTrue();
+        assertThat(newFile5.canWrite()).isTrue();
+
+        File newFile6 = instance().getNewFile(baseDir, simpleName + ".flag_6", false); // file
+        assertThat(newFile6).isNotNull();
+        assertThat(newFile6.exists()).isTrue();
+        assertThat(newFile6.isFile()).isTrue();
+        assertThat(newFile6.canRead()).isTrue();
+        assertThat(newFile6.canWrite()).isTrue();
     }
 
     @Test

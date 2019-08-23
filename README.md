@@ -10,7 +10,7 @@
    
 #### 使用Gradle构建时添加一下依赖即可:
 ```
-implementation 'com.dvsnier:cache:0.2.0'
+implementation 'com.dvsnier:cache:0.2.1'
 ```
 
 #### 使用前配置
@@ -201,6 +201,16 @@ implementation 'com.dvsnier:cache:0.2.0'
 | getInputStream(K)            | Y    | *      |          |      |      |     |
 | getObject(K)                 | Y    | *      |          |      |      |     |
 |                              |      |        |          |      |      |     |
+| put(K,V,D,U)                 |      | *      | Y        |      |      |     |
+| putString(K,V,D,U)           |      | *      | Y        |      |      |     |
+| putInputStream(K,V,D,U)      |      | *      | Y        |      |      |     |
+| putObject(K,V,D,U)           |      | *      | Y        |      |      |     |
+|                              |      |        |          |      |      |     |
+| get(K)                       |      | *      | Y        |      |      |     |
+| getString(K)                 |      | *      | Y        |      |      |     |
+| getInputStream(K)            |      | *      | Y        |      |      |     |
+| getObject(K)                 |      | *      | Y        |      |      |     |
+|                              |      |        |          |      |      |     |
 | put(Type,K,V)                |      | Y      |          |      |      |     |
 | putString(Type,K,V)          |      | Y      |          |      |      |     |
 | putInputStream(Type,K,V)     |      | Y      |          |      |      |     |
@@ -228,7 +238,7 @@ implementation 'com.dvsnier:cache:0.2.0'
   如果配置不符合规范，则提供的默认配置为： `/mnt/sdcard/Android/data/package_your_name/cache/local`
   
 > - ```0.0.6``` 版本的Cache SDK 和```0.1.0``` 版本的Cache SDK 不兼容，如需简单使用缓存请使用```0.0.6```；
-> - 推荐```0.2.0```，本地缓存过期和持久化自由切换(冷切换)，兼容```0.1.0``` 版本，不兼容```0.0.6``` 版本;
+> - 推荐```0.2.1```，本地缓存过期和持久化自由切换(冷切换)，兼容```0.1.0``` 版本，不兼容```0.0.6``` 版本;
 ----
 ### 关于作者
 * Email： <dovsnier@qq.com>
