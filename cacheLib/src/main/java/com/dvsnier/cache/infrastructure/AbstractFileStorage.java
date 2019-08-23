@@ -20,8 +20,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -239,6 +241,79 @@ public abstract class AbstractFileStorage extends AbstractStorage implements IFi
         writeToFile(reader, uniqueName, NONE, FLAG_NEW_FILE_NAME);
     }
 
+    public void writeToFile(@NonNull File directory, @NonNull String uniqueName, boolean isDeleted, IWrite write) {
+        writeToFile(getNewFile(directory, uniqueName, isDeleted), write);
+    }
+
+    @Override
+    public void writeToFile(@NonNull File directory, @NonNull String uniqueName, IWrite write) {
+        if (validateValue(directory)) {
+            Debug.e(String.format("the directory parameters(%s) cannot be null.", directory));
+            throw new IllegalArgumentException("the directory parameters cannot be null.");
+        }
+        if (validateValue(uniqueName)) {
+            Debug.e(String.format("the unique name parameters(%s) cannot be null.", uniqueName));
+            throw new IllegalArgumentException("the unique name parameters cannot be null.");
+        }
+        writeToFile(getNewFile(directory, uniqueName), write);
+    }
+
+    @Override
+    public void writeToFile(@NonNull File uniqueName, IWrite write) {
+        if (validateValue(uniqueName)) {
+            Debug.e(String.format("the unique name parameters(%s) cannot be null.", uniqueName));
+            throw new IllegalArgumentException("the unique name parameters cannot be null.");
+        }
+        if (validateValue(write)) {
+            return;
+        }
+        File newFile = getNewFile(uniqueName);
+        OutputStream outputStream = null;
+        Writer writer = null;
+        if (write instanceof SimpleWriter) {
+            ((SimpleWriter) write).setFile(newFile);
+        }
+        try {
+            switch (write.getWriteType()) {
+                case STREAM:
+                    outputStream = new BufferedOutputStream(new FileOutputStream(newFile, true), DEFAULT_SIZE);
+                    //noinspection LoopStatementThatDoesntLoop
+                    while (true) {
+                        //noinspection unchecked
+                        if (write.write(outputStream)) {
+                            writer.flush();
+                            break;
+                        } else {
+                            break;
+                        }
+                    }
+                    break;
+                case WRITE:
+                    writer = new BufferedWriter(new FileWriter(newFile, true), DEFAULT_SIZE);
+                    //noinspection LoopStatementThatDoesntLoop
+                    while (true) {
+                        //noinspection unchecked
+                        if (write.write(writer)) {
+                            writer.flush();
+                            break;
+                        } else {
+                            break;
+                        }
+                    }
+                    break;
+            }
+        } catch (FileNotFoundException e) {
+            Debug.e(String.format("the file not found exception(%s) occurred when writing data to file.", e.getMessage()));
+            e.printStackTrace();
+        } catch (IOException e) {
+            Debug.e(String.format("the io exception(%s) occurred when writing data to file.", e.getMessage()));
+            e.printStackTrace();
+        } finally {
+            closeQuietly(outputStream);
+            closeQuietly(writer);
+        }
+    }
+
     @Override
     public void writeToFile(@NonNull Reader reader, int size) {
         writeToFile(reader, null, size, FLAG_MULTI_MODE);
@@ -350,6 +425,10 @@ public abstract class AbstractFileStorage extends AbstractStorage implements IFi
     }
 
     public File getNewFile(@NonNull File parent, @NonNull String uniqueName) {
+        return getNewFile(parent, uniqueName, true);
+    }
+
+    public File getNewFile(@NonNull File parent, @NonNull String uniqueName, boolean flag) {
         if (validateValue(parent)) {
             String msg = String.format("the current parameter(%s) cannot be null.", "parent");
             Debug.w(msg);
@@ -363,20 +442,24 @@ public abstract class AbstractFileStorage extends AbstractStorage implements IFi
         File file = new File(parent, uniqueName);
         if (file.exists()) {
             Debug.i(String.format("the current file(%s) already exists.", file.getName()));
-            if (file.delete()) {
-                Debug.i(String.format("the current file(%s) has deleted, that to rebuild.", file.getName()));
-                try {
-                    if (file.createNewFile()) { // file
-                        Debug.i(String.format("the current new file is %s.", file.getName()));
-                    } else {
-                        Debug.w(String.format("no permission to create a %s file.", file.getName()));
+            if (flag) {
+                if (file.delete()) {
+                    Debug.i(String.format("the current file(%s) has deleted, that to rebuild.", file.getName()));
+                    try {
+                        if (file.createNewFile()) { // file
+                            Debug.i(String.format("the current new file is %s.", file.getName()));
+                        } else {
+                            Debug.w(String.format("no permission to create a %s file.", file.getName()));
+                        }
+                    } catch (IOException e) {
+                        Debug.i(String.format("the current new file(%s) occurred io exception.", file.getName()));
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    Debug.i(String.format("the current new file(%s) occurred io exception.", file.getName()));
-                    e.printStackTrace();
+                } else {
+                    Debug.w(String.format("no permission to delete a %s file.", file.getName()));
                 }
             } else {
-                Debug.w(String.format("no permission to delete a %s file.", file.getName()));
+                // nothing to do
             }
         } else {
             try {
