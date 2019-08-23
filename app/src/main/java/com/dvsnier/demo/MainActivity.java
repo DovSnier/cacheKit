@@ -42,9 +42,11 @@ public class MainActivity extends Activity {
                         .commit();
 
                 CacheManager.getInstance().put(IType.TYPE_DOWNLOADS, getKey(), getValue())
+                        .put(IType.TYPE_DOWNLOADS, key0, getValue(), 1, TimeUnit.DAYS)
                         .put(IType.TYPE_DOWNLOADS, key1, getValue(), 30, TimeUnit.SECONDS)
                         .put(IType.TYPE_DOWNLOADS, key2, getValue(), 1, TimeUnit.MINUTES)
                         .put(IType.TYPE_DOWNLOADS, String.valueOf(System.currentTimeMillis()), getValue(), 3, TimeUnit.SECONDS)
+                        .put(IType.TYPE_DOWNLOADS, String.valueOf(System.currentTimeMillis()), getValue(), 15, TimeUnit.SECONDS)
                         .commit(IType.TYPE_DOWNLOADS);
                 obtainContent();
                 close();
@@ -97,9 +99,12 @@ public class MainActivity extends Activity {
                 Object o0 = CacheManager.getInstance().get(key0);
                 String o1 = CacheManager.getInstance().getString(key1);
                 Object o2 = CacheManager.getInstance().getObject(key2);
+                CacheManager.getInstance().commit();
 
-                Object O3 = CacheManager.getInstance().get(IType.TYPE_DOWNLOADS, key1);
-                Object O4 = CacheManager.getInstance().get(IType.TYPE_DOWNLOADS, key2);
+                Object O3 = CacheManager.getInstance().get(IType.TYPE_DOWNLOADS, key0);
+                Object O4 = CacheManager.getInstance().get(IType.TYPE_DOWNLOADS, key1);
+                Object O5 = CacheManager.getInstance().get(IType.TYPE_DOWNLOADS, key2);
+                CacheManager.getInstance().commit(IType.TYPE_DOWNLOADS);
 
                 content.setText(String.format(Locale.getDefault(), "1. value：\n\t\t\t\t%1$s\n\n2. 字符串：\n\t\t\t\t%2$s\n\n3. 对象：\n\t\t\t\t%3$s\n\n", o0, o1, o2));
             }
