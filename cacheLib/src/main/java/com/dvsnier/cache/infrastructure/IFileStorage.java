@@ -105,6 +105,23 @@ public interface IFileStorage {
     void writeToFile(@NonNull Reader reader, int size);
 
     /**
+     * the write data to file
+     *
+     * @param directory  the base directory
+     * @param uniqueName the unique name
+     * @param write      {@link IWrite}
+     */
+    void writeToFile(@NonNull File directory, @NonNull String uniqueName, IWrite write);
+
+    /**
+     * the write data to file
+     *
+     * @param uniqueName the unique file
+     * @param write      {@link IWrite}
+     */
+    void writeToFile(@NonNull File uniqueName, IWrite write);
+
+    /**
      * the create file
      *
      * @param uniqueName the unique file name

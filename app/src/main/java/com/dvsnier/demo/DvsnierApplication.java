@@ -4,13 +4,23 @@ import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.dvsnier.cache.CacheManager;
 import com.dvsnier.cache.base.CacheGenre;
 import com.dvsnier.cache.config.ICacheConfig;
 import com.dvsnier.cache.config.IType;
+import com.dvsnier.cache.infrastructure.FileStorage;
 import com.dvsnier.cache.infrastructure.LogStorage;
+import com.dvsnier.cache.infrastructure.SimpleWriter;
+import com.dvsnier.cache.infrastructure.WriteType;
+import com.dvsnier.cache.transaction.OnTransactionSessionChangeListener;
 import com.dvsnier.crash.Crash;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
 
 /**
  * Created by lizw on 2017/6/23.
@@ -40,18 +50,33 @@ public class DvsnierApplication extends Application {
 //                .setLevel(Level.VERBOSE)
                 .create());
 
-//        CacheManager.getInstance().setOnTransactionSessionChangeListener(null, new OnTransactionSessionChangeListener() {
-//            @Override
-//            public void onTransactionSessionChange(@NonNull String alias, @NonNull String key, @Nullable Object value) {
+        final File baseDir = FileStorage.INSTANCE().getBaseDir(DvsnierApplication.this);
+        CacheManager.getInstance().setOnTransactionSessionChangeListener(null, new OnTransactionSessionChangeListener() {
+            @Override
+            public void onTransactionSessionChange(@NonNull final String alias, @NonNull final String key, @Nullable final Object value) {
+                //                Log.i(Debug.TAG(), String.format("==> the current cache engine(%s), key(%s) - value(%s)", alias, key, value));
+                FileStorage.INSTANCE().writeToFile(baseDir, "local.log", false, new SimpleWriter<Writer>(WriteType.WRITE) {
+                    @Override
+                    public boolean write(Writer writer) throws IOException {
+                        writer.write(String.format("==> the current cache engine(%s), key(%s) - value(%s).\n", alias, key, value));
+                        return true;
+                    }
+                });
+            }
+        });
+        CacheManager.getInstance().setOnTransactionSessionChangeListener(IType.TYPE_DOWNLOADS, new OnTransactionSessionChangeListener() {
+            @Override
+            public void onTransactionSessionChange(@NonNull final String alias, @NonNull final String key, @Nullable final Object value) {
 //                Log.i(Debug.TAG(), String.format("==> the current cache engine(%s), key(%s) - value(%s)", alias, key, value));
-//            }
-//        });
-//        CacheManager.getInstance().setOnTransactionSessionChangeListener(IType.TYPE_DOWNLOADS, new OnTransactionSessionChangeListener() {
-//            @Override
-//            public void onTransactionSessionChange(@NonNull String alias, @NonNull String key, @Nullable Object value) {
-//                Log.i(Debug.TAG(), String.format("==> the current cache engine(%s), key(%s) - value(%s)", alias, key, value));
-//            }
-//        });
+                FileStorage.INSTANCE().writeToFile(baseDir, String.format("%s.log", IType.TYPE_DOWNLOADS), false, new SimpleWriter<Writer>(WriteType.WRITE) {
+                    @Override
+                    public boolean write(Writer writer) throws IOException {
+                        writer.write(String.format("==> the current cache engine(%s), key(%s) - value(%s).\n", alias, key, value));
+                        return true;
+                    }
+                });
+            }
+        });
     }
 
     @Override
